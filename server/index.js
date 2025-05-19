@@ -9,11 +9,7 @@ dotenv.config()
 const app = express();
 
 // middleware
-app.use(cors(
-    {
-        origin: '*'
-    }
-));
+app.use(cors({origin: '*'}));
 app.use(express.json());
 
 // connectionDB
@@ -23,12 +19,17 @@ connectionDB();
 const rootRoute = require("./routes/rootRoute");
 app.use("/",rootRoute);
 
-// // AuthRoute
-// const authRoute = require("./routes/authRoute");
-// app.use("/api",authRoute);
-
+// RegisterUser
 const registerUserRoute = require('./routes/registerUserRoute');
 app.use('/api/user', registerUserRoute);
+
+// checkUserProfile
+const userProfileRoute = require('./routes/userProfileCheckRoute');
+app.use('/api/users',userProfileRoute)
+
+const createProfileRoute = require('./routes/createProfileRoute');
+app.use('/api/users', createProfileRoute); 
+
 
 app.listen(process.env.PORT ,  () =>{
     console.log(`server started on port  ${process.env.PORT}`);

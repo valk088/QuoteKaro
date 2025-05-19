@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { auth } from "../../firebase";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   signInWithEmailAndPassword,
   setPersistence,
@@ -10,10 +10,19 @@ import {
 } from "firebase/auth";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const checkUserProfile = async (firebaseUID) => {
+    const res = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/users/${firebaseUID}`
+    );
+    const data = await res.json();
+    return data?.profileComplete;
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,8 +31,21 @@ const Login = () => {
 
     try {
       await setPersistence(auth, browserLocalPersistence);
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const firebaseUID = userCredential.user.uid;
+
+      const hasProfile = await checkUserProfile(firebaseUID);
+      if (hasProfile) {
+        navigate("/dashboard");
+      } else {
+        navigate("/profile");
+      }
       console.log("✅ Logged in!");
+      
     } catch (err) {
       console.error(err);
       setError("Invalid credentials or something went wrong.");
@@ -36,8 +58,17 @@ const Login = () => {
     const provider = new GoogleAuthProvider();
     try {
       await setPersistence(auth, browserLocalPersistence);
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const firebaseUID = result.user.uid;
+
       console.log("✅ Logged in with Google!");
+
+      const hasProfile = await checkUserProfile(firebaseUID);
+      if (hasProfile) {
+        navigate("/dashboard");
+      } else {
+        navigate("/create-profile");
+      }
     } catch (err) {
       console.error(err);
       setError("Google sign-in failed.");
@@ -159,9 +190,8 @@ const Login = () => {
                 Forgot password?
               </div>
             </div>
-            
+
             <div
-            
               onClick={handleLogin}
               className="w-full py-3 bg-[#624eff]   text-white  font-medium rounded-lg shadow hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors text-center cursor-pointer"
             >
@@ -236,7 +266,10 @@ const Login = () => {
 
           <div className="mt-8 text-center text-sm text-gray-600">
             Don't have an account?{" "}
-            <Link to="/register" className="text-purple-600 font-medium hover:text-purple-800 cursor-pointer">
+            <Link
+              to="/register"
+              className="text-purple-600 font-medium hover:text-purple-800 cursor-pointer"
+            >
               Sign up
             </Link>
           </div>

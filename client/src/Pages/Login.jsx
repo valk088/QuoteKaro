@@ -40,9 +40,9 @@ const Login = () => {
 
       const hasProfile = await checkUserProfile(firebaseUID);
       if (hasProfile) {
-        navigate("/dashboard");
+        navigate("/dashboard",{ replace: true });
       } else {
-        navigate("/profile");
+        navigate("/profile",{ replace: true });
       }
       console.log("✅ Logged in!");
       
@@ -65,9 +65,9 @@ const Login = () => {
 
       const hasProfile = await checkUserProfile(firebaseUID);
       if (hasProfile) {
-        navigate("/dashboard");
+        navigate("/dashboard",{ replace: true });
       } else {
-        navigate("/create-profile");
+        navigate("/profile" , { replace: true });
       }
     } catch (err) {
       console.error(err);

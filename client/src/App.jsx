@@ -5,6 +5,9 @@ import Register from './Pages/Register'
 import { saveUIDToLocalStorage } from './auth';
 import { BrowserRouter,Routes,Route } from 'react-router-dom'
 import ProfilePage from './Pages/Profile'
+import Dashboard from './Pages/Dashboard';
+import MyEstimates from './Pages/MyEstimates';
+
 function App() {
 
   useEffect(() => {
@@ -16,9 +19,13 @@ function App() {
     
     <BrowserRouter>
       <Routes>
+        <Route path='/' element={<Login/>}></Route>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/dashboard" element={<Dashboard/>} />
+        <Route path="/my-estimates" element={<MyEstimates/>} />
+
       </Routes>
     </BrowserRouter>
     

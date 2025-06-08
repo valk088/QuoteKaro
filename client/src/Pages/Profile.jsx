@@ -1,15 +1,17 @@
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import {
   Camera,
   Instagram,
   Facebook,
   Youtube,
-  Link,
+  Link2,
   MapPin,
   Phone,
   Mail,
   Save,
   X,
+  CircleChevronLeft,
   Check,
   Upload,
   Edit,
@@ -42,15 +44,16 @@ export default function ProfilePage() {
     notes: "",
   });
 
-  // State for UI
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState();
   const [isMobile, setIsMobile] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
   const [notification, setNotification] = useState({
     show: false,
     message: "",
     type: "",
   });
+
   const [logoFile, setLogoFile] = useState(null);
   const [showCropper, setShowCropper] = useState(false);
   const [cropperImg, setCropperImg] = useState("");
@@ -78,29 +81,32 @@ export default function ProfilePage() {
       window.removeEventListener("resize", checkIfMobile);
     };
   }, []);
-  
+
   useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const firebaseUID = localStorage.getItem("firebaseUID");
-      console.log("🔍 UID in localStorage:", firebaseUID);
+    const fetchProfile = async () => {
+      try {
+        const firebaseUID = localStorage.getItem("firebaseUID");
+        console.log("🔍 UID in localStorage:", firebaseUID);
 
-      if (!firebaseUID) return;
+        if (!firebaseUID) return;
 
-      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/users/get-profile/${firebaseUID}`);
-      console.log("📦 API Response:", res.data);
+        const res = await axios.get(
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/users/get-profile/${firebaseUID}`
+        );
+        console.log("📦 API Response:", res.data);
 
-      if (res.data.user) {
-        setFormData(res.data.user);
+        if (res.data.user) {
+          setFormData(res.data.user);
+        }
+      } catch (err) {
+        console.error("❌ Error loading profile", err);
       }
-    } catch (err) {
-      console.error("❌ Error loading profile", err);
-    }
-  };
+    };
 
-  fetchProfile();
-}, []);
-
+    fetchProfile();
+  }, []);
 
   // Handle input change
   const handleChange = (e) => {
@@ -166,33 +172,35 @@ export default function ProfilePage() {
 
   // Save profile data
   const saveProfile = async () => {
-  try {
-    setIsSaving(true);
+    try {
+      setIsSaving(true);
 
-    const firebaseUID = localStorage.getItem("firebaseUID");
+      const firebaseUID = localStorage.getItem("firebaseUID");
 
-    if (!firebaseUID) {
-      showNotification("User ID missing. Please re-login.", "error");
-      return;
+      if (!firebaseUID) {
+        showNotification("User ID missing. Please re-login.", "error");
+        return;
+      }
+
+      const payload = {
+        ...formData,
+        firebaseUID, // force ensure UID is sent
+      };
+
+      await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/create-profile`,
+        payload
+      );
+
+      showNotification("Profile saved successfully!", "success");
+      setIsEditing(false);
+    } catch (error) {
+      showNotification("Error saving profile", "error");
+      console.error("Error saving profile:", error);
+    } finally {
+      setIsSaving(false);
     }
-
-    const payload = {
-      ...formData,
-      firebaseUID, // force ensure UID is sent
-    };
-
-    await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/users/create-profile`, payload);
-
-    showNotification("Profile saved successfully!", "success");
-    setIsEditing(false);
-  } catch (error) {
-    showNotification("Error saving profile", "error");
-    console.error("Error saving profile:", error);
-  } finally {
-    setIsSaving(false);
-  }
-};
-
+  };
 
   // Show notification helper
   const showNotification = (message, type) => {
@@ -205,7 +213,7 @@ export default function ProfilePage() {
   // Render different sections of the form
   const renderPersonalInfo = () => (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h3 className="text-lg font-semibold text-purple-800 mb-4">
+      <h3 className="text-lg font-bold text-purple-600 mb-4">
         Personal Information
       </h3>
 
@@ -220,7 +228,7 @@ export default function ProfilePage() {
             value={formData.studioName}
             onChange={handleChange}
             disabled={!isEditing}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-400 focus:border-purple-500"
           />
         </div>
 
@@ -234,7 +242,7 @@ export default function ProfilePage() {
             value={formData.email}
             onChange={handleChange}
             disabled={!isEditing}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
 
@@ -248,7 +256,7 @@ export default function ProfilePage() {
             value={formData.phone}
             onChange={handleChange}
             disabled={!isEditing}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
 
@@ -262,7 +270,7 @@ export default function ProfilePage() {
             value={formData.phone2}
             onChange={handleChange}
             disabled={!isEditing}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
 
@@ -276,7 +284,7 @@ export default function ProfilePage() {
             value={formData.caption}
             onChange={handleChange}
             disabled={!isEditing}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
 
@@ -290,7 +298,7 @@ export default function ProfilePage() {
             value={formData.website}
             onChange={handleChange}
             disabled={!isEditing}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
       </div>
@@ -312,7 +320,7 @@ export default function ProfilePage() {
             value={formData.address?.d_address}
             onChange={handleChange}
             disabled={!isEditing}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
 
@@ -326,7 +334,7 @@ export default function ProfilePage() {
             value={formData.address?.city}
             onChange={handleChange}
             disabled={!isEditing}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
 
@@ -340,7 +348,7 @@ export default function ProfilePage() {
             value={formData.address?.state}
             onChange={handleChange}
             disabled={!isEditing}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
 
@@ -354,7 +362,7 @@ export default function ProfilePage() {
             value={formData.address?.pincode}
             onChange={handleChange}
             disabled={!isEditing}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
       </div>
@@ -377,7 +385,7 @@ export default function ProfilePage() {
             onChange={handleChange}
             disabled={!isEditing}
             placeholder="Instagram URL"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
 
@@ -390,7 +398,7 @@ export default function ProfilePage() {
             onChange={handleChange}
             disabled={!isEditing}
             placeholder="Facebook URL"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
 
@@ -403,7 +411,7 @@ export default function ProfilePage() {
             onChange={handleChange}
             disabled={!isEditing}
             placeholder="YouTube URL"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
       </div>
@@ -426,7 +434,7 @@ export default function ProfilePage() {
           onChange={handleChange}
           disabled={!isEditing}
           rows={4}
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+          className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           placeholder="Booking policies, cancellation policies, etc."
         />
       </div>
@@ -441,7 +449,7 @@ export default function ProfilePage() {
           onChange={handleChange}
           disabled={!isEditing}
           rows={4}
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+          className="w-full p-2 border-3 border-purple-200 rounded-xl focus:ring-purple-500 focus:border-purple-500"
           placeholder="Additional notes or information"
         />
       </div>
@@ -453,6 +461,9 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
       {/* Header */}
       <header className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4 md:p-6">
+        <div>
+          <Link to="/dashboard"> <CircleChevronLeft size={24}  /> </Link>
+        </div>
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <h1 className="text-2xl md:text-3xl font-bold">
@@ -464,15 +475,15 @@ export default function ProfilePage() {
                 <div className="flex space-x-2">
                   <button
                     onClick={cancelCrop}
-                    className="px-4 py-2 bg-white text-purple-700 rounded-md hover:bg-gray-100 transition flex items-center"
+                    className="px-4 py-2 bg-white text-purple-700 font-semibold rounded-md hover:bg-gray-100 transition flex items-center"
                   >
-                    <X size={18} className="mr-1" /> Cancel
+                    <X size={18} className="mr-1 font-bold" /> Cancel
                   </button>
 
                   <button
                     onClick={saveProfile}
                     disabled={isSaving}
-                    className="px-4 py-2 bg-purple-800 text-white rounded-md hover:bg-purple-900 transition flex items-center"
+                    className="px-4 py-2 bg-black text-white rounded-md font-semibold hover:bg-purple-600 transition flex items-center"
                   >
                     {isSaving ? (
                       "Saving..."
@@ -486,7 +497,7 @@ export default function ProfilePage() {
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-white text-purple-700 rounded-md hover:bg-gray-100 transition flex items-center"
+                  className="px-4 py-2 bg-black text-white   font-semibold   rounded-lg hover:bg-gray-100 transition flex items-center"
                 >
                   <Edit size={18} className="mr-1" /> Edit Profile
                 </button>
@@ -497,9 +508,9 @@ export default function ProfilePage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto py-6 px-4">
+      <main className="max-w-6xl mx-auto py-6 px-4 ">
         {/* Profile Overview / Logo Section */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6 flex flex-col md:flex-row">
+        <div className="bg-white rounded-2xl  border-none shadow-md p-6 mb-6 flex flex-col md:flex-row">
           <div className="md:w-1/3 mb-6 md:mb-0 flex justify-center">
             <div className="relative">
               <div className="w-40 h-40 rounded-full border-4 border-purple-200 overflow-hidden bg-gray-100 flex items-center justify-center">
@@ -534,17 +545,17 @@ export default function ProfilePage() {
           </div>
 
           <div className="md:w-2/3">
-            <h2 className="text-2xl font-bold text-purple-800">
+            <h2 className="text-3xl font-sans font-bold text-purple-500">
               {formData.studioName || "Your Studio Name"}
             </h2>
 
-            <div className="text-gray-600 mt-1">
+            <div className="text-gray-600 font-semibold mt-1">
               {formData.caption || "Your professional tagline here"}
             </div>
 
             <div className="mt-4 space-y-2">
               {formData.email && (
-                <div className="flex items-center">
+                <div className="flex items-center font-semibold">
                   <Mail size={16} className="text-purple-600 mr-2" />
                   <span>{formData.email}</span>
                 </div>
@@ -570,14 +581,21 @@ export default function ProfilePage() {
 
               {formData.website && (
                 <div className="flex items-center">
-                  <Link size={16} className="text-purple-600 mr-2" />
+                  <Link2 size={16} className="text-purple-600 mr-2" />
                   <a
-                    href={formData.website}
+                    href={
+                      formData.website.startsWith("http://") ||
+                      formData.website.startsWith("https://")
+                        ? formData.website
+                        : `https://${formData.website}`
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-500 hover:underline"
                   >
-                    {formData.website.replace(/^https?:\/\//i, "")}
+                    {formData.website
+                      .replace(/^https?:\/\//i, "")
+                      .replace(/\/$/, "")}
                   </a>
                 </div>
               )}
@@ -664,7 +682,7 @@ export default function ProfilePage() {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={cancelCrop}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 border-3 border-purple-200 rounded-xl hover:bg-gray-50"
               >
                 Cancel
               </button>

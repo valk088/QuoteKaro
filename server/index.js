@@ -24,8 +24,8 @@ const registerUserRoute = require('./routes/registerUserRoute');
 app.use('/api/user', registerUserRoute);
 
 // checkUserProfile
-const userProfileRoute = require('./routes/userProfileCheckRoute');
-app.use('/api/users',userProfileRoute)
+const userProfileCompleteRoute = require('./routes/userProfileCompleteRoute');
+app.use('/api/users',userProfileCompleteRoute)
 
 const createProfileRoute = require('./routes/createProfileRoute');
 app.use('/api/users', createProfileRoute); 

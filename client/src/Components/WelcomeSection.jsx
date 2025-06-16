@@ -1,14 +1,13 @@
 import React from 'react'
 import {Bell} from 'lucide-react';
-
+import { useUser } from '../context/UserContext';
 function WelcomeSection({name}) {
-    const studioData = {
-    name: "Creative Studio Pro",
-    credits: 125,
-    plan: "Premium",
-    profileComplete: false,
-    currentTheme: "Modern Purple"
-  };
+
+   const { userData , loading} = useUser();
+   if(loading || !userData) return null ;
+
+
+    
   return (
     <div>
       <div className="hidden md:flex items-center justify-between mb-8">
@@ -16,7 +15,7 @@ function WelcomeSection({name}) {
               <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
                 🚀 <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{name}</span>
               </h1>
-              <p className="text-gray-600 mt-1">Welcome back, {studioData.name}! Here's your studio overview.</p>
+              <p className="text-gray-600 mt-1"> Welcome back, <span className='font-bold'>{userData.studioName}!</span> </p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">

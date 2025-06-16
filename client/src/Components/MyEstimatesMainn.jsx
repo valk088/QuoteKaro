@@ -14,48 +14,15 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+import { useEstimates } from "../context/EstimateContext";
 function MyEstimatesMainn() {
+  const { estimates, loading } = useEstimates();
+
+  if (loading || !estimates) return null;
+
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
 
-  const [estimates] = useState([
-    {
-      id: 1,
-      clientName: "Aditi Sharma",
-      eventName: "Wedding Photography",
-      amount: 45000,
-      date: "2025-06-05",
-      status: "sent",
-      eventType: "wedding",
-    },
-    {
-      id: 2,
-      clientName: "Rohit Kumar",
-      eventName: "Engagement Shoot",
-      amount: 25000,
-      date: "2025-06-04",
-      status: "draft",
-      eventType: "engagement",
-    },
-    {
-      id: 3,
-      clientName: "Priya Singh",
-      eventName: "Birthday Party",
-      amount: 15000,
-      date: "2025-06-03",
-      status: "pending",
-      eventType: "party",
-    },
-    {
-      id: 4,
-      clientName: "Amit Patel",
-      eventName: "Anniversary Celebration",
-      amount: 35000,
-      date: "2025-06-02",
-      status: "sent",
-      eventType: "anniversary",
-    },
-  ]);
   const statusConfig = {
     sent: {
       icon: Check,
@@ -99,7 +66,7 @@ function MyEstimatesMainn() {
     {
       label: "PDF",
       icon: Download,
-      color: "indigo",
+      color: "orange",
       onClick: () => console.log("Download"),
     },
     {
@@ -122,22 +89,24 @@ function MyEstimatesMainn() {
         {/* Header */}
         <div className="flex flex-row justify-between sm:flex-row bg-white sm:justify-between sm:items-start">
           <div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
+            <h3 className="text-lg sm:text-2xl font-semibold text-black">
               {estimate.clientName}
             </h3>
-            <p className="text-sm text-gray-500">{estimate.eventName}</p>
-            <div className="text-sm text-gray-500">
-              {new Date(estimate.date).toLocaleDateString("en-IN", {
-                day: "numeric",
+            <p className="text-sm font-semibold md:py-2 text-gray-700">
+              {estimate.functionName}
+            </p>
+            <div className="text-sm  font-semibold text-gray-700">
+              {new Date(estimate.startDate).toLocaleDateString("en-GB", {
+                day: "2-digit",
                 month: "short",
                 year: "numeric",
               })}
             </div>
           </div>
 
-          <div className="mt-2 sm:mt-0">
-            <div className="text-xl font-bold text-purple-500">
-              ₹{estimate.amount.toLocaleString()}
+          <div className="sm:m-0 flex-col m-3   ">
+            <div className="text-xl mb-1 font-bold  bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              ₹{estimate.subtotal}
             </div>
             <StatusBadge status={estimate.status} />
           </div>
@@ -185,7 +154,7 @@ function MyEstimatesMainn() {
   const filteredEstimates = estimates.filter((estimate) => {
     const matchesSearch =
       estimate.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      estimate.eventName.toLowerCase().includes(searchTerm.toLowerCase());
+      estimate.functionName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter =
       activeFilter === "all" || estimate.status === activeFilter;
     return matchesSearch && matchesFilter;
@@ -195,7 +164,7 @@ function MyEstimatesMainn() {
     const Icon = config.icon;
     return (
       <div
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.color} ${config.bg}`}
+        className={`inline-flex  items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.color} ${config.bg}`}
       >
         <Icon size={12} />
         {config.label}

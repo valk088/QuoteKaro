@@ -1,27 +1,14 @@
-import React from "react";
-import { 
-  TrendingUp,
-  TrendingDown,
-  Zap,
-  FileText,
-  Users,
-  DollarSign,
-  
-} from 'lucide-react';
-function QuickStates() {
+import {TrendingUp,TrendingDown,Zap,FileText,Users,DollarSign,} from "lucide-react";
+import { useUser } from "../context/UserContext";
 
-    const studioData = {
-    name: "Creative Studio Pro",
-    credits: 125,
-    plan: "Premium",
-    profileComplete: false,
-    currentTheme: "Modern Purple"
-  };
+function QuickStates() {
+  const { userData , loading} = useUser();
+    if (loading || !userData) return null; 
 
   const quickStats = [
     {
       title: "Total Estimates",
-      value: "247",
+      value: userData.total_estimates,
       change: "+12%",
       trend: "up",
       icon: FileText,
@@ -29,7 +16,7 @@ function QuickStates() {
     },
     {
       title: "Total Clients",
-      value: "89",
+      value: userData.total_clients,
       change: "+8%",
       trend: "up",
       icon: Users,
@@ -37,15 +24,15 @@ function QuickStates() {
     },
     {
       title: "Credits Left",
-      value: studioData.credits,
+      value: userData.credits_left,
       change: "-15",
       trend: "down",
       icon: Zap,
       color: "yellow",
     },
     {
-      title: "This Month",
-      value: "₹2,45,000",
+      title: "Total Turnover",
+      value: "₹"+userData.totalturnover,
       change: "+23%",
       trend: "up",
       icon: DollarSign,

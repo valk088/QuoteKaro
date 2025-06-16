@@ -1,5 +1,18 @@
-import { Plus,Eye,Edit,Send } from 'lucide-react';
+import { Plus, Edit, Send } from "lucide-react";
+import {Link} from "react-router-dom"
+import { useEstimates } from "../context/EstimateContext";
+
 function RecentEstimates() {
+  
+  const { estimates, loading } = useEstimates();
+  if (loading || !estimates) return null;
+
+  const recentEstimates = [...estimates]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
+
+
+
   const getStatusColor = (status) => {
     switch (status) {
       case "sent":
@@ -14,57 +27,16 @@ function RecentEstimates() {
         return "bg-gray-100 text-gray-800";
     }
   };
-  const recentEstimates = [
-    {
-      id: 1,
-      client: "Rahul Sharma",
-      occasion: "Wedding Photography",
-      amount: "₹85,000",
-      date: "2 days ago",
-      status: "sent",
-    },
-    {
-      id: 2,
-      client: "Priya Singh",
-      occasion: "Birthday Party",
-      amount: "₹25,000",
-      date: "3 days ago",
-      status: "draft",
-    },
-    {
-      id: 3,
-      client: "Amit Kumar",
-      occasion: "Corporate Event",
-      amount: "₹1,20,000",
-      date: "5 days ago",
-      status: "viewed",
-    },
-    {
-      id: 4,
-      client: "Sneha Patel",
-      occasion: "Pre-wedding Shoot",
-      amount: "₹45,000",
-      date: "1 week ago",
-      status: "sent",
-    },
-    {
-      id: 5,
-      client: "Rohit Gupta",
-      occasion: "Baby Shower",
-      amount: "₹35,000",
-      date: "1 week ago",
-      status: "accepted",
-    },
-  ];
+  
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
       <div className="flex items-center justify-between p-6 border-b border-gray-100">
         <h2 className="text-xl font-semibold text-gray-800">
           Recent Estimates
         </h2>
-        <button className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-2">
+        <Link to= "/new-estimate"  className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-2">
           <Plus size={16} /> Create New
-        </button>
+        </Link>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -91,21 +63,27 @@ function RecentEstimates() {
             </tr>
           </thead>
           <tbody>
-            {recentEstimates.map((estimate) => (
+            {[...recentEstimates].slice(0, 5).map((estimate) => (
               <tr
-                key={estimate.id}
+                key={estimate._id}
                 className="border-b border-gray-50 hover:bg-gray-25"
               >
                 <td className="p-4">
                   <div className="font-medium text-gray-800">
-                    {estimate.client}
+                    {estimate.clientName}
                   </div>
                 </td>
-                <td className="p-4 text-gray-600">{estimate.occasion}</td>
+                <td className="p-4 text-gray-600">{estimate.functionName}</td>
                 <td className="p-4 font-medium text-gray-800">
-                  {estimate.amount}
+                  ₹{estimate.netTotal }
                 </td>
-                <td className="p-4 text-gray-500 text-sm">{estimate.date}</td>
+                <td className="p-4 text-gray-500 text-sm">
+                  {new Date(estimate.startDate).toLocaleDateString("en-IN", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </td>
                 <td className="p-4">
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
@@ -117,12 +95,7 @@ function RecentEstimates() {
                 </td>
                 <td className="p-4">
                   <div className="flex items-center gap-2">
-                    <button
-                      className="p-1 text-gray-600 hover:text-blue-600"
-                      title="View"
-                    >
-                      <Eye size={16} />
-                    </button>
+                    
                     <button
                       className="p-1 text-gray-600 hover:text-green-600"
                       title="Edit"

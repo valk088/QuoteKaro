@@ -10,7 +10,7 @@ const Sidebar = () => {
   const location = useLocation();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [activeItem, setActiveItem] = useState('dashboard');
+  
 
  const menuItems = [
   { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard', path: '/dashboard' },
@@ -51,26 +51,24 @@ const Sidebar = () => {
 
 
               return (
-                <Link to={item.path}>
-                <button
-                  key={item.id}
-                
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-purple-100 text-purple-500 border-2 border-purple-300' 
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
-                  }`}
-                  title={!isOpen ? item.label : ''}
-                >
-                  <Icon size={20} className="flex-shrink-0" />
-                  {isOpen && (
-                    <span className="font-medium text-sm whitespace-nowrap">
-                      {item.label}
-                    </span>
-                  )}
-                </button>
-                </Link>
-              );
+    <Link to={item.path} key={item.id}>
+      <button
+        className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
+          isActive
+            ? 'bg-purple-100 text-purple-500 border-2 border-purple-300'
+            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
+        }`}
+        title={!isOpen ? item.label : ''}
+      >
+        <Icon size={20} className="flex-shrink-0" />
+        {isOpen && (
+          <span className="font-medium text-sm whitespace-nowrap">
+            {item.label}
+          </span>
+        )}
+      </button>
+    </Link>
+  );
             })}
           </nav>
 
@@ -85,9 +83,9 @@ const Sidebar = () => {
               const isActive = location.pathname === item.path;
 
               return (
-                <Link to={item.path}>
+                <Link to={item.path} key={item.id}>
                 <button
-                  key={item.id}
+                  
                   
                   className={`flex items-center justify-center p-3 rounded-xl transition-all duration-200 ${
                     isActive 

@@ -7,6 +7,8 @@ import { BrowserRouter,Routes,Route } from 'react-router-dom'
 import ProfilePage from './Pages/Profile'
 import Dashboard from './Pages/Dashboard';
 import MyEstimates from './Pages/MyEstimates';
+import CreateEstimate from './Pages/CreateEstimate';
+import NewEstimate from './Pages/NewEstimate';
 
 function App() {
 
@@ -25,6 +27,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/dashboard" element={<Dashboard/>} />
         <Route path="/my-estimates" element={<MyEstimates/>} />
+         <Route path='/new-estimate' element={<NewEstimate/>}></Route>
 
       </Routes>
     </BrowserRouter>

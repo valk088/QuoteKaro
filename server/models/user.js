@@ -33,7 +33,14 @@ const userSchema = new mongoose.Schema(
     notes: { type: String },
 
     // SaaS Related
+    plan: { type: String, default: "Basic" },
     credits: { type: Number, default: 10 },
+    total_estimates: { type: Number, default: 10 },
+    total_clients: { type: Number, default: 0 },
+    credits_left: { type: Number, default: 0 },
+    totalturnover: { type: Number, default: 0 },
+
+
     isSuspended: { type: Boolean, default: false },
     joinedAt: { type: Date, default: Date.now },
   },

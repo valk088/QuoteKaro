@@ -1,9 +1,13 @@
-import React from "react";
+import React,{useEffect} from "react";
 import {Crown,Zap} from "lucide-react";
 import { useUser } from '../context/UserContext';
+import { Link } from "react-router-dom";
 function Creditcard() {
-     const { userData , loading} = useUser();
+     const { userData , loading ,refresh} = useUser();
       if(loading || !userData) return null ;
+
+      
+      
       
   return (
     <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl p-6 text-white">
@@ -19,11 +23,12 @@ function Creditcard() {
           <span className="text-purple-100">Credits Remaining</span>
           <Zap size={16} />
         </div>
-        <div className="text-2xl font-bold">{userData.credits_left}</div>
+        <div className="text-2xl font-bold">{userData.left_credits}</div>
       </div>
-      <button className="w-full bg-white text-purple-600 py-2 rounded-lg font-medium hover:bg-purple-50 transition-colors">
+      <Link to="/plan-credits"><button  className="w-full bg-white text-purple-600 py-2 rounded-lg font-medium hover:bg-purple-50 transition-colors">
         Buy More Credits
       </button>
+      </Link>
     </div>
   );
 }

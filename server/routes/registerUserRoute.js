@@ -18,8 +18,9 @@ router.post('/register', async (req, res) => {
     if (user) {
       return res.status(200).json({ message: "User already exists", user });
     }
-    
-    user = new User({ firebaseUID, studioName, email });
+    const DEFAULT_CREDITS = 10;
+    user = new User({ firebaseUID, studioName, email , total_credits: DEFAULT_CREDITS,
+      left_credits: DEFAULT_CREDITS,});
     await user.save();
 
     res.status(201).json({ message: "User registered successfully", user });

@@ -2,13 +2,14 @@ const express = require("express");
 const router = express.Router();
 const Estimate = require("../models/estimates");
 const User = require("../models/user");
-const updateTotalTurnoverForUser = require("../utils/calculateTurnover");
+const updateUserStats = require("../utils/calculateUserStats");
 router.post("/create", async (req, res) => {
   try {
     const {
       firebaseUID,
       clientName,
       functionName,
+      phoneNumber,
       date,
       status,
       services,
@@ -31,6 +32,7 @@ router.post("/create", async (req, res) => {
       userId: user._id,
       clientName,
       functionName,
+      phoneNumber,
       location,
       description,
       notes,
@@ -47,7 +49,7 @@ router.post("/create", async (req, res) => {
       discountType,
     });
     await newEstimate.save();
-    await updateTotalTurnoverForUser(firebaseUID);
+    await updateUserStats(firebaseUID,"create");
 
     res.status(201).json({ success: true, estimate: newEstimate });
   } catch (err) {

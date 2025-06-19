@@ -9,7 +9,7 @@ function QuickStates() {
     {
       title: "Total Estimates",
       value: userData.total_estimates,
-      change: "+12%",
+      change: "--",
       trend: "up",
       icon: FileText,
       color: "blue",
@@ -17,15 +17,15 @@ function QuickStates() {
     {
       title: "Total Clients",
       value: userData.total_clients,
-      change: "+8%",
+      change: "--",
       trend: "up",
       icon: Users,
       color: "green",
     },
     {
-      title: "Credits Left",
-      value: userData.credits_left,
-      change: "-15",
+      title: "Credits Used",
+      value: userData.used_credits,
+      change: "--",
       trend: "down",
       icon: Zap,
       color: "yellow",
@@ -33,7 +33,7 @@ function QuickStates() {
     {
       title: "Total Turnover",
       value: "₹"+userData.totalturnover,
-      change: "+23%",
+      change: "--",
       trend: "up",
       icon: DollarSign,
       color: "purple",

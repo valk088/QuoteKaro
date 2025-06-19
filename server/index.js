@@ -32,15 +32,22 @@ app.use('/api/users', createProfileRoute);
 
 // Create New Estimate
 const createestimateRoute = require('./routes/createEstimate');
-
 app.use('/api/estimates', createestimateRoute);
-// Get All Estimate
 
+// Edit Estimate
+const editstimateRoute = require('./routes/editEstimate');
+app.use('/estimate', editstimateRoute);
+
+// delete Estimate
+const deleteestimateRoute = require('./routes/deleteEstimate');
+app.use('/estimate', deleteestimateRoute);
+
+// Get All Estimate
 const getEstimateRoute = require('./routes/getAllEstimates');
 app.use('/api/estimates', getEstimateRoute);
 
-const test = require('./routes/test');
-app.use('/test', test);
+// const test = require('./routes/test');
+// app.use('/test', test);
 
 app.listen(process.env.PORT ,  () =>{
     console.log(`server started on port  ${process.env.PORT}`);

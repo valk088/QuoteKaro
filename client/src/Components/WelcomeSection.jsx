@@ -1,12 +1,16 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {Bell} from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { Link } from 'react-router-dom';
+
+
 function WelcomeSection({name}) {
 
-   const { userData , loading} = useUser();
+   const { userData , loading } = useUser();
    if(loading || !userData) return null ;
 
 
+  
     
   return (
     <div>
@@ -27,10 +31,10 @@ function WelcomeSection({name}) {
                   day: 'numeric' 
                 })}</p>
               </div>
-              <button className="relative p-3 bg-white rounded-xl border border-gray-200 text-gray-600 hover:text-gray-800 shadow-sm">
+              <Link to="/notifications" className="relative p-3 bg-white rounded-xl border border-gray-200 text-gray-600 hover:text-gray-800 shadow-sm">
                 <Bell size={20} />
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-              </button>
+              </Link>
             </div>
           </div>
     </div>

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const updateTotalTurnoverForUser = require("../utils/calculateTurnover");
+const updateTotalTurnoverForUser = require("../utils/calculateUserStats");
 
 router.get("/debug-turnover/:uid", async (req, res) => {
   try {

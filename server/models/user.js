@@ -34,10 +34,13 @@ const userSchema = new mongoose.Schema(
 
     // SaaS Related
     plan: { type: String, default: "Basic" },
-    credits: { type: Number, default: 10 },
-    total_estimates: { type: Number, default: 10 },
+    total_estimates: { type: Number, default: 0 },
     total_clients: { type: Number, default: 0 },
-    credits_left: { type: Number, default: 0 },
+
+    total_credits: { type: Number, default: 10 },
+    left_credits: { type: Number, default: 0 },
+    used_credits: { type: Number, default: 0 },
+    
     totalturnover: { type: Number, default: 0 },
 
 

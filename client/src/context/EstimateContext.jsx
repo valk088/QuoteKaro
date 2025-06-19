@@ -1,15 +1,20 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { useLocation } from 'react-router-dom';
-
+import { toast } from 'react-hot-toast';
+import { useUser } from "./UserContext";
 const EstimateContext = createContext();
 
-export const EstimateProvider = ({ children }) => {
+ const EstimateProvider = ({ children }) => {
+  
   const firebaseUID = localStorage.getItem("firebaseUID");
+   const { refresh } = useUser(); 
+
   const [estimates, setEstimates] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch estimates
   const fetchEstimates = async () => {
+    
     try {
       setLoading(true);
       const res = await axios.get(
@@ -25,15 +30,43 @@ export const EstimateProvider = ({ children }) => {
     }
   };
 
-useEffect(() => {
-  fetchEstimates();
-}, [Location.pathname]);
+  // Delete estimate
+  const deleteEstimate = async (id) => {
+    try {
+      const res = await axios.delete(
+        `${import.meta.env.VITE_BACKEND_URL}/estimate/delete/${id}`
+      );
+      if (res.data.success) {
+        toast.success("Estimate deleted successfully ✅");
+        await fetchEstimates();
+              
+        
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong while deleting");
+    }
+  };
+
+  
+  useEffect(() => {
+    fetchEstimates();
+  }, []);
 
   return (
-    <EstimateContext.Provider value={{ estimates, loading, refreshEstimates: fetchEstimates }}>
+    <EstimateContext.Provider
+      value={{
+        estimates,
+        loading,
+        deleteEstimate,
+        refreshEstimates: fetchEstimates,
+      }}
+    >
       {children}
     </EstimateContext.Provider>
   );
-};
 
-export const useEstimates = () => useContext(EstimateContext);
+  
+};
+const useEstimates = () => useContext(EstimateContext);
+export { EstimateProvider, useEstimates };

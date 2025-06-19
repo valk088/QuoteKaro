@@ -1,17 +1,14 @@
 import { Plus, Edit, Send } from "lucide-react";
-import {Link} from "react-router-dom"
+import { Link } from "react-router-dom";
 import { useEstimates } from "../context/EstimateContext";
 
 function RecentEstimates() {
-  
   const { estimates, loading } = useEstimates();
   if (loading || !estimates) return null;
 
   const recentEstimates = [...estimates]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 5);
-
-
+    .slice(0, 10);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -27,14 +24,17 @@ function RecentEstimates() {
         return "bg-gray-100 text-gray-800";
     }
   };
-  
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
       <div className="flex items-center justify-between p-6 border-b border-gray-100">
         <h2 className="text-xl font-semibold text-gray-800">
           Recent Estimates
         </h2>
-        <Link to= "/new-estimate"  className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-2">
+        <Link
+          to="/new-estimate"
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-2"
+        >
           <Plus size={16} /> Create New
         </Link>
       </div>
@@ -75,7 +75,7 @@ function RecentEstimates() {
                 </td>
                 <td className="p-4 text-gray-600">{estimate.functionName}</td>
                 <td className="p-4 font-medium text-gray-800">
-                  ₹{estimate.netTotal }
+                  ₹{estimate.netTotal}
                 </td>
                 <td className="p-4 text-gray-500 text-sm">
                   {new Date(estimate.startDate).toLocaleDateString("en-IN", {
@@ -95,7 +95,6 @@ function RecentEstimates() {
                 </td>
                 <td className="p-4">
                   <div className="flex items-center gap-2">
-                    
                     <button
                       className="p-1 text-gray-600 hover:text-green-600"
                       title="Edit"

@@ -460,7 +460,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
       {/* Header */}
-      <header className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4 md:p-6">
+      <header className=" bg-gradient-to-l from-purple-600 via-pink-400 to-purple-500 text-white p-4 md:p-6">
         <div>
           <Link to="/dashboard"> <CircleChevronLeft size={24}  /> </Link>
         </div>

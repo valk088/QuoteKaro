@@ -1,18 +1,19 @@
 import Navbar from "../Components/Navbar";
+import NotificationMainn from "../Components/NotificationMainn";
 import Sidebar from "../Components/Sidebar";
-import NewEstimateMainn from "../Components/NewEstimateMainn";
 
-function NewEstimate() {
+function Notifications() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-full bg-gray-50 ">
+      
       <Navbar />
 
       <div className="flex md:flex-row flex-col md:h-screen">
         <Sidebar />
-        <NewEstimateMainn />
+        <NotificationMainn />
       </div>
     </div>
   );
 }
 
-export default NewEstimate;
+export default Notifications;

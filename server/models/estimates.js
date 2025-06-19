@@ -11,6 +11,7 @@ const estimateSchema = new mongoose.Schema({
   clientName: { type: String, required: true },
   functionName: { type: String },        // You renamed eventName to functionName
   location: { type: String },
+  phoneNumber: { type: String },
   description: { type: String },
   notes: { type: String },
 

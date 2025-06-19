@@ -13,15 +13,17 @@ import {
   Clock,
   AlertCircle,
 } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 import { useEstimates } from "../context/EstimateContext";
+import { Link } from "react-router-dom";
 function MyEstimatesMainn() {
-  const { estimates, loading } = useEstimates();
+  const { estimates, loading ,deleteEstimate} = useEstimates();
 
-  if (loading || !estimates) return null;
+  
 
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+  if (loading || !estimates) return null;
 
   const statusConfig = {
     sent: {
@@ -50,12 +52,17 @@ function MyEstimatesMainn() {
     },
   };
 
-  const actions = [
+  
+
+  const EstimateCard = ({ estimate }) => {
+    const navigate = useNavigate(); 
+
+    const actions = [
     {
       label: "Edit",
       icon: Edit2,
       color: "yellow",
-      onClick: () => console.log("Edit"),
+      onClick: () => navigate(`/edit-estimate/${estimate._id}`)
     },
     {
       label: "Send",
@@ -73,7 +80,8 @@ function MyEstimatesMainn() {
       label: "Delete",
       icon: Trash2,
       color: "red",
-      onClick: () => console.log("Delete"),
+      onClick: () => {if (confirm("Are you sure you want to delete this estimate?"))  deleteEstimate(estimate._id);
+              }
     },
     {
       label: "View",
@@ -82,14 +90,12 @@ function MyEstimatesMainn() {
       onClick: () => console.log("View", estimate._id),
     },
   ];
-
-  const EstimateCard = ({ estimate }) => {
     return (
       <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-md border border-gray-200 hover:shadow-lg transition-all duration-200 space-y-4">
         {/* Header */}
         <div className="flex flex-row justify-between sm:flex-row bg-white sm:justify-between sm:items-start">
           <div>
-            <h3 className="text-lg sm:text-2xl font-semibold text-black">
+            <h3 className="text-lg md:text-xl font-semibold text-black">
               {estimate.clientName}
             </h3>
             <p className="text-sm font-semibold md:py-2 text-gray-700">
@@ -144,9 +150,9 @@ function MyEstimatesMainn() {
           : "Create your first estimate to get started"}
       </p>
       {!searchTerm && activeFilter === "all" && (
-        <button className="bg-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-purple-700 transition-colors">
+        <Link to="/new-estimate" t className="bg-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-purple-700 transition-colors">
           Create Estimate
-        </button>
+        </Link>
       )}
     </div>
   );
@@ -183,9 +189,9 @@ function MyEstimatesMainn() {
           <div className="px-4 py-6">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-gray-900">My Estimates</h1>
-              <button className="bg-purple-600 text-white p-3 rounded-xl hover:bg-purple-700 transition-colors shadow-lg">
+              <Link to="/new-estimate" className="bg-purple-600 text-white p-3 rounded-xl hover:bg-purple-700 transition-colors shadow-lg">
                 <Plus size={20} />
-              </button>
+              </Link>
             </div>
 
             {/* Search */}
@@ -257,16 +263,16 @@ function MyEstimatesMainn() {
           ) : (
             <div className="space-y-4">
               {filteredEstimates.map((estimate) => (
-                <EstimateCard key={estimate.id} estimate={estimate} />
+                <EstimateCard key={estimate._id} estimate={estimate} />
               ))}
             </div>
           )}
         </div>
 
         {/* Floating Action Button for Mobile */}
-        <button className="fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-2xl hover:bg-purple-700 transition-all hover:scale-110 md:hidden">
+        <Link to="/new-estimate" className="fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-2xl hover:bg-purple-700 transition-all hover:scale-110 md:hidden">
           <Plus size={24} />
-        </button>
+        </Link>
       </div>
     </div>
   );

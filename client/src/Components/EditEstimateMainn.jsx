@@ -1,20 +1,39 @@
-import {ArrowLeft,Plus,Trash2,Calendar,MapPin,FileText,Calculator,Percent,Save,Send,} from "lucide-react";
-import { useEffect, useState, React } from "react";
-import WelcomeSection from "../Components/WelcomeSection";
+import {
+  Plus,
+  Trash2,
+  Calendar,
+  MapPin,
+  FileText,
+  Calculator,
+  Percent,
+  Save,
+  Send,
+} from "lucide-react";
+import { useEffect, useState, React, useMemo } from "react";
 import axios from "axios";
-import { useUser } from "../context/UserContext";
-const CreateEstimate = () => {
-  const { userData , loading} = useUser();
-     if(loading || !userData) return null ; 
 
+import WelcomeSection from "./WelcomeSection";
+import { useUser } from "../context/UserContext";
+import { useEstimates } from "../context/EstimateContext";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+
+const EditEstimateMainn = () => {
+  const { id } = useParams();
+  const { estimates, refreshEstimates } = useEstimates();
+  const { userData, loading } = useUser();
+  const navigate = useNavigate();
+
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     clientName: "",
     functionName: "",
+    phoneNumber: "",
     location: "",
     description: "",
     startDate: "",
     endDate: "",
-    notes: userData.notes,
+    notes: "",
   });
 
   const [services, setServices] = useState([
@@ -43,6 +62,46 @@ const CreateEstimate = () => {
     "Video Editing",
   ];
 
+  const estimateToEdit = useMemo(() => {
+    return estimates.find((e) => e._id === id);
+  }, [estimates, id]);
+
+  useEffect(() => {
+    if (estimateToEdit && userData) {
+      setFormData({
+        clientName: estimateToEdit.clientName || "",
+        functionName: estimateToEdit.functionName || "",
+        phoneNumber: estimateToEdit.phoneNumber || "",
+        location: estimateToEdit.location || "",
+        description: estimateToEdit.description || "",
+        startDate: estimateToEdit.startDate || "",
+        endDate: estimateToEdit.endDate || "",
+        notes: estimateToEdit.notes || userData.notes || "",
+      });
+
+      const estimateServices = estimateToEdit.services || [];
+      if (estimateServices.length > 0) {
+        setServices(
+          estimateServices.map((service, index) => ({
+            ...service,
+            id: service.id || index + 1, // Ensure each service has an ID
+          }))
+        );
+      } else {
+        setServices([
+          { id: 1, serviceName: "", quantity: 1, pricePerUnit: 0, total: 0 },
+        ]);
+      }
+
+      setTotals({
+        subtotal: estimateToEdit.subtotal || 0,
+        discount: estimateToEdit.discount || 0,
+        discountType: estimateToEdit.discountType || "percentage",
+        netTotal: estimateToEdit.netTotal || 0,
+      });
+    }
+  }, [estimateToEdit, userData]);
+
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -56,18 +115,23 @@ const CreateEstimate = () => {
         if (service.id === id) {
           const updated = { ...service, [field]: value };
           if (field === "quantity" || field === "pricePerUnit") {
-            updated.total = updated.quantity * updated.pricePerUnit;
+            // Ensure numeric values
+            const quantity = Number(updated.quantity) || 0;
+            const pricePerUnit = Number(updated.pricePerUnit) || 0;
+            updated.quantity = quantity;
+            updated.pricePerUnit = pricePerUnit;
+            updated.total = quantity * pricePerUnit;
           }
           return updated;
         }
         return service;
       })
     );
-    
   };
 
   const addService = () => {
-    const newId = Math.max(...services.map((s) => s.id)) + 1;
+    const newId =
+      services.length > 0 ? Math.max(...services.map((s) => s.id)) + 1 : 1;
     setServices((prev) => [
       ...prev,
       {
@@ -83,29 +147,30 @@ const CreateEstimate = () => {
   const removeService = (id) => {
     if (services.length > 1) {
       setServices((prev) => prev.filter((service) => service.id !== id));
-      calculateTotals();
     }
   };
 
+  // Fix calculateTotals function - remove the separate call, let useEffect handle it
   const calculateTotals = () => {
-    
-      const subtotal = services.reduce((sum, service) => sum + service.total,0);
-      let discountAmount = 0;
+    const subtotal = services.reduce(
+      (sum, service) => sum + (Number(service.total) || 0),
+      0
+    );
+    let discountAmount = 0;
 
-      if (totals.discountType === "percentage") {
-        discountAmount = (subtotal * totals.discount) / 100;
-      } else {
-        discountAmount = totals.discount;
-      }
+    if (totals.discountType === "percentage") {
+      discountAmount = (subtotal * Number(totals.discount)) / 100;
+    } else {
+      discountAmount = Number(totals.discount) || 0;
+    }
 
-       const netTotal  = Math.max(0, subtotal - discountAmount);
+    const netTotal = Math.max(0, subtotal - discountAmount);
 
-      setTotals((prev) => ({
-        ...prev,
-        subtotal,
-        netTotal: netTotal ,
-      }));
-    
+    setTotals((prev) => ({
+      ...prev,
+      subtotal,
+      netTotal: netTotal,
+    }));
   };
 
   const handleDiscountChange = (field, value) => {
@@ -113,48 +178,96 @@ const CreateEstimate = () => {
       ...prev,
       [field]: value,
     }));
-    
   };
 
+  // Fix useEffect dependency array
   useEffect(() => {
-  calculateTotals();
-}, [services, totals.discount, totals.discountType]);
+    calculateTotals();
+  }, [services, totals.discount, totals.discountType]);
 
   const handleSubmit = async () => {
+    if (isLoading) return; // Prevent double submission
+
+    setIsLoading(true);
     try {
       const firebaseUID = localStorage.getItem("firebaseUID");
 
+      if (!firebaseUID) {
+        toast.error("Authentication error. Please log in again.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Required field validation
+      const requiredFields = [
+        formData.clientName,
+        formData.functionName,
+        formData.phoneNumber,
+        formData.startDate,
+      ];
+
+      if (requiredFields.some((field) => !field || field.trim() === "")) {
+        toast.error("Please fill all required fields marked with *");
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate services
+      const validServices = services.filter(
+        (service) => service.serviceName && service.serviceName.trim() !== ""
+      );
+
+      if (validServices.length === 0) {
+        toast.error("Please add at least one service");
+        setIsLoading(false);
+        return;
+      }
+
       const payload = {
         firebaseUID,
-        ...formData, 
-        services: services, 
+        ...formData,
+        services: validServices,
         subtotal: totals.subtotal,
         discount: totals.discount,
         discountType: totals.discountType,
         netTotal: totals.netTotal,
         status: "draft",
-        date: new Date().toISOString(), 
-        
-         
+        date: new Date().toISOString(),
       };
 
-      const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/estimates/create`,
+      const res = await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/estimate/edit/${id}`,
         payload
       );
 
       if (res.data.success) {
-        console.log("✅ Estimate created successfully");
-        console.log("📦 Submitting payload:", payload);
-        
+        toast.success("Estimate updated successfully ✅");
+        console.log("✅ Estimate updated successfully");
+
+        // Refresh estimates if function is available
+        if (refreshEstimates) {
+          await refreshEstimates();
+        }
+
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1500);
+      } else {
+        toast.error("Failed to update estimate");
       }
     } catch (err) {
-      console.error("❌ Failed to create estimate", err);
+      console.error("❌ Failed to update estimate", err);
+      toast.error("Failed to update estimate. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (loading || !estimates) return <div>Loading...</div>;
+  if (!estimateToEdit) return <div>Estimate not found</div>;
   return (
     <div className="flex-1 p-0 m-0 md:p-8 overflow-y-auto">
-      <WelcomeSection name="New-Estimate" />
+      <WelcomeSection name="Edit-Estimate" />
 
       <div className="max-w-7xl mx-auto p-3 md:p-6 space-y-6">
         {/* Client Information Card */}
@@ -169,6 +282,7 @@ const CreateEstimate = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Client Name */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Client Name *
@@ -184,6 +298,7 @@ const CreateEstimate = () => {
               />
             </div>
 
+            {/* Function Name */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Function Name *
@@ -199,6 +314,7 @@ const CreateEstimate = () => {
               />
             </div>
 
+            {/* Start Date */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Start Date *
@@ -210,7 +326,9 @@ const CreateEstimate = () => {
                 />
                 <input
                   type="date"
-                  value={formData.startDate}
+                  value={
+                    formData.startDate ? formData.startDate.slice(0, 10) : ""
+                  }
                   onChange={(e) =>
                     handleInputChange("startDate", e.target.value)
                   }
@@ -219,6 +337,7 @@ const CreateEstimate = () => {
               </div>
             </div>
 
+            {/* End Date */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 End Date (Optional)
@@ -230,14 +349,15 @@ const CreateEstimate = () => {
                 />
                 <input
                   type="date"
-                  value={formData.endDate}
+                  vvalue={formData.endDate ? formData.endDate.slice(0, 10) : ""}
                   onChange={(e) => handleInputChange("endDate", e.target.value)}
                   className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
 
-            <div className="md:col-span-2">
+            {/* Location */}
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Location
               </label>
@@ -258,18 +378,19 @@ const CreateEstimate = () => {
               </div>
             </div>
 
-            <div className="md:col-span-2">
+            {/* Phone Number */}
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Description
+                Phone Number *
               </label>
-              <textarea
-                value={formData.description}
+              <input
+                type="text"
+                value={formData.phoneNumber}
                 onChange={(e) =>
-                  handleInputChange("description", e.target.value)
+                  handleInputChange("phoneNumber", e.target.value)
                 }
-                placeholder="Brief description of the event or requirements"
-                rows={3}
-                className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+                placeholder="e.g. +91 784xxxxxxx"
+                className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
               />
             </div>
           </div>
@@ -496,7 +617,7 @@ const CreateEstimate = () => {
             className="flex-1 bg-gradient-to-r hover:from-pink-600 hover:to-purple-600 hover:scale-105  text-white py-4 px-6 rounded-2xl font-bold hover:bg-gradient-to-r from-purple-600  hover: from-pink-600 to-pink-600  transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
           >
             <Save size={20} />
-            Save as Draft
+            Update Estimate
           </button>
           <button className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 text-white py-4 px-6 rounded-2xl font-bold hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3">
             <Send size={20} />
@@ -508,4 +629,4 @@ const CreateEstimate = () => {
   );
 };
 
-export default CreateEstimate;
+export default EditEstimateMainn;

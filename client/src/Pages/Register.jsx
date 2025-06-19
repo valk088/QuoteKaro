@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { auth } from "../../firebase";
 import axios from "axios";
-import { Link , useNavigate  } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, Camera, User } from 'lucide-react';
 
 import {
   createUserWithEmailAndPassword,
@@ -14,12 +14,14 @@ import {
 } from "firebase/auth";
 
 const Register = () => {
-  const [studioName, setstudioName] = useState("");
+  const [studioName, setStudioName] = useState("");
   const [email, setEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -52,7 +54,7 @@ const Register = () => {
           email,
         }
       );
-      console.log("✅ Registered ");
+      console.log("✅ Registered");
       navigate("/login");
       
     } catch (err) {
@@ -72,6 +74,7 @@ const Register = () => {
       const firebaseUID = user.uid;
       const email = user.email;
       const studioName = user.displayName || "My Studio";
+      
       // Send to backend
       await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/user/register`,
@@ -82,6 +85,7 @@ const Register = () => {
         }
       );
       console.log("✅ Signed up with Google!");
+      navigate("/dashboard"); // Navigate to dashboard after successful Google register
     } catch (err) {
       console.error(err);
       setError("Google sign-up failed");
@@ -89,213 +93,226 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-t from-[#624eff] via-[#988aff]   to-white p-4">
-      {/* Decorative SVG Background Elements */}
-      <div className="absolute inset-0 overflow-hidden opacity-50 pointer-events-none">
-        <svg
-          className="absolute top-0 left-0 w-full h-full"
-          viewBox="0 0 1200 800"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M0,200 Q300,100 600,300 T1200,200 V800 H0 Z"
-            fill="#624eff"
-          />
-          <path
-            d="M0,400 Q300,300 600,500 T1200,400 V800 H0 Z"
-            fill="#624eff"
-          />
-          <circle cx="200" cy="100" r="80" fill="#624eff" />
-          <circle cx="1000" cy="200" r="120" fill="#624eff" />
-        </svg>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Floating orbs */}
+        <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full opacity-20 blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full opacity-20 blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-gradient-to-br from-blue-300 to-purple-200 rounded-full opacity-10 blur-2xl animate-pulse delay-500"></div>
+        
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.3) 1px, transparent 0)`,
+            backgroundSize: '50px 50px'
+          }}></div>
+        </div>
+      </div>
+    <div className="relative z-10 w-full max-w-md">
+      {/* Logo/Brand Section */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl shadow-lg mb-4 transform rotate-12 hover:rotate-0 transition-transform duration-300">
+          <Camera className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          QuoteKaro
+        </h1>
+        <p className="text-gray-500 text-sm">
+          <span className="font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">Create Account </span>
+          to start your creative journey
+        </p>
       </div>
 
-      <div className="relative z-10 flex w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden">
-        {/* Left Side - Decorative Area */}
-        <div className="hidden md:flex md:w-1/2 bg-white flex-col items-center justify-center text-white">
-          <div className="w-[450px] h-[450px]">
-            <img
-              src="logo.png "
-              className=" rounded-full border-none bg-black w-[450px] h-[450px] "
-              alt=""
-            />
+      {/* Register Card */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8 space-y-6">
+        {error && (
+          <div className="bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl p-4 flex items-center gap-3">
+            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <p className="text-red-600 text-sm font-medium">{error}</p>
           </div>
-        </div>
+        )}
 
-        {/* Right Side - Login Form */}
-        <div className="w-full  md:w-1/2 p-8 md:p-12">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-[#c14af9]">Hello!</h2>
-            <p className="text-gray-500 mt-2">
-              Sign Up to continue your journey
-            </p>
-          </div>
-
-          {error && (
-            <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded">
-              <p className="text-red-600 text-sm">{error}</p>
-            </div>
-          )}
-
-          <div className="space-y-6">
-            {/*StdioName  */}
+        <form onSubmit={handleRegister} className="space-y-4">
+          {/* Studio Name Input */}
+          <div className="relative group">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Studio Name
+            </label>
             <div className="relative">
-              <div className="absolute left-3 top-3 text-[#624eff]">
-                <svg
-                  width="30"
-                  height="30"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </div>
+              <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors w-5 h-5" />
               <input
                 type="text"
-                placeholder="Studio Name"
-                className="w-full pl-12 pr-4 py-3 bg-white border-none rounded-xl shadow-lg focus:outline-0 focus:ring-0"
+                placeholder="Enter your studio name"
+                className="w-full pl-12 pr-4 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all hover:border-purple-300 group-focus-within:bg-white"
                 value={studioName}
-                onChange={(e) => setstudioName(e.target.value)}
+                onChange={(e) => setStudioName(e.target.value)}
                 required
               />
             </div>
+          </div>
 
-            {/* EMAIL */}
+          {/* Email Input */}
+          <div className="relative group">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Email Address
+            </label>
             <div className="relative">
-              <div className="absolute left-3 top-3 text-[#624eff]">
-                <svg
-                  width="30"
-                  height="30"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </div>
+              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors w-5 h-5" />
               <input
                 type="email"
-                placeholder="Email Address"
-                className="w-full pl-12 pr-4 py-3 bg-white border-none   rounded-xl  shadow-lg   focus:outline-0 focus:ring-0 focus:ring-purple-300 focus:border-transparent"
+                placeholder="Enter your email"
+                className="w-full pl-12 pr-4 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all hover:border-purple-300 group-focus-within:bg-white"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-            {/* PASSWORD */}
-            <div className="relative ">
-              <div className="absolute left-3 top-2 text-[#624eff] shadow-4xl shadow-black">
-                <svg
-                  width="30"
-                  height="30"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M18 8H17V6C17 3.24 14.76 1 12 1C9.24 1 7 3.24 7 6V8H6C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17ZM15 8H9V6C9 4.34 10.34 3 12 3C13.66 3 15 4.34 15 6V8Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </div>
+          </div>
+
+          {/* Password Input */}
+          <div className="relative group">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors w-5 h-5" />
               <input
-                type="password"
-                placeholder="Password"
-                className="w-full pl-12 pr-4 py-3 bg-white  focus:outline-none focus:ring-0 shadow-2xl rounded-xl"
+                type={showPassword ? "text" : "password"}
+                placeholder="Create a strong password"
+                className="w-full pl-12 pr-12 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all hover:border-purple-300 group-focus-within:bg-white"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-            </div>
-
-            <div
-              onClick={handleRegister}
-              className="w-full py-3 bg-[#624eff]   text-white  font-medium rounded-lg shadow hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors text-center cursor-pointer"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Signing up...
-                </span>
-              ) : (
-                "Sign Up"
-              )}
-            </div>
-          </div>
-
-          <div className="mt-8">
-            <div className="relative flex items-center justify-center">
-              <div className="border-t border-gray-200 absolute w-full"></div>
-              <div className="bg-white px-4 relative z-10 text-sm text-gray-500">
-                or continue with
-              </div>
-            </div>
-
-            <div
-              onClick={handleGoogleRegister}
-              className="mt-4 w-full flex items-center justify-center gap-2 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-500 transition-colors"
               >
-                <path
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  fill="#4285F4"
-                />
-                <path
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  fill="#34A853"
-                />
-                <path
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  fill="#FBBC05"
-                />
-                <path
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  fill="#EA4335"
-                />
-              </svg>
-              Google
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 
-          <div className="mt-8 text-center text-sm text-gray-600">
-            Already have an account?{" "}
-            <Link to="/login" className="text-purple-600 font-medium hover:text-purple-800 cursor-pointer">
-              Sign In
-            </Link>
+          {/* Terms and Conditions */}
+          <div className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              id="terms"
+              className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2 mt-0.5"
+              required
+            />
+            <label htmlFor="terms" className="text-gray-600 font-medium leading-relaxed">
+              I agree to the{" "}
+              <Link
+                to="/terms"
+                className="text-purple-600 hover:text-pink-600 font-semibold transition-colors"
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                to="/privacy"
+                className="text-purple-600 hover:text-pink-600 font-semibold transition-colors"
+              >
+                Privacy Policy
+              </Link>
+            </label>
+          </div>
+
+          {/* Create Account Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 group"
+          >
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Creating your account...
+              </>
+            ) : (
+              <>
+                Create Account
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div className="relative flex items-center justify-center py-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative bg-white px-4 text-sm text-gray-500">
+            or sign up with
           </div>
         </div>
+
+        {/* Google Sign Up */}
+        <button
+          onClick={handleGoogleRegister}
+          className="w-full flex items-center justify-center gap-3 py-4 border-2 border-gray-200 rounded-2xl hover:border-purple-300 hover:bg-purple-50/30 transition-all transform hover:scale-105 group"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              fill="#4285F4"
+            />
+            <path
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              fill="#34A853"
+            />
+            <path
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              fill="#FBBC05"
+            />
+            <path
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              fill="#EA4335"
+            />
+          </svg>
+          <span className="font-semibold text-gray-700 group-hover:text-purple-700 transition-colors">
+            Sign up with Google
+          </span>
+        </button>
+
+        {/* Sign In Link */}
+        <div className="text-center pt-4">
+          <p className="text-gray-600">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent hover:from-pink-600 hover:to-purple-600 transition-all"
+            >
+              Sign In
+            </Link>
+          </p>
+        </div>
       </div>
+
+      {/* Footer */}
+      <div className="text-center mt-8 space-y-2">
+        <div className="flex items-center justify-center gap-2 text-gray-400">
+          <Sparkles className="w-4 h-4" />
+          <span className="text-sm">Crafted with passion for photographers</span>
+          <Sparkles className="w-4 h-4" />
+        </div>
+        <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
+          <Link to="/privacy" className="hover:text-purple-600 transition-colors">Privacy Policy</Link>
+          <span>•</span>
+          <Link to="/terms" className="hover:text-purple-600 transition-colors">Terms of Service</Link>
+          <span>•</span>
+          <Link to="/support" className="hover:text-purple-600 transition-colors">Support</Link>
+        </div>
+      </div>
+    </div>
     </div>
   );
 };

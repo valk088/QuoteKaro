@@ -497,7 +497,7 @@ export default function ProfilePage() {
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-black text-white   font-semibold   rounded-lg hover:bg-gray-100 transition flex items-center"
+                  className="px-4 py-2 bg-black text-white   font-semibold   rounded-lg hover:scale-105 transition flex items-center"
                 >
                   <Edit size={18} className="mr-1" /> Edit Profile
                 </button>

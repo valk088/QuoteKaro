@@ -1,11 +1,13 @@
-import { Plus, Edit, Send } from "lucide-react";
+import { Plus, Edit, Send, Link2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEstimates } from "../context/EstimateContext";
+import { useUser } from "../context/UserContext";
 
 function RecentEstimates() {
+  const {userData} = useUser();
   const { estimates, loading } = useEstimates();
   if (loading || !estimates) return null;
-
+  
   const recentEstimates = [...estimates]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 10);
@@ -95,12 +97,14 @@ function RecentEstimates() {
                 </td>
                 <td className="p-4">
                   <div className="flex items-center gap-2">
-                    <button
+                    <Link to={`/edit-estimate/${estimate._id}`}
+                    
+                    
                       className="p-1 text-gray-600 hover:text-green-600"
                       title="Edit"
                     >
                       <Edit size={16} />
-                    </button>
+                    </Link>
                     <button
                       className="p-1 text-gray-600 hover:text-purple-600"
                       title="Send via WhatsApp"

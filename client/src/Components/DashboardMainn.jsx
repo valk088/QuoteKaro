@@ -5,9 +5,10 @@ import RecentEstimates from "./RecentEstimates";
 import TopClients from "./TopClients";
 import Creditcard from "./CreditCard";
 import MiniCalender from "./MiniCalender";
-
+import { useEffect } from "react";
+import { useUser } from "../context/UserContext";
 function DashboardMainn() {
-
+  
   return (
     <div className="flex-1 p-4 md:p-8 overflow-y-auto">
       <WelcomeSection name="Dashboard" />
@@ -18,7 +19,6 @@ function DashboardMainn() {
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-8">
           <RecentEstimates />
-          
         </div>
 
         {/* Right Column */}

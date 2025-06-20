@@ -15,10 +15,16 @@ import { PiNotepadBold } from "react-icons/pi";
 import { LuNotebookPen } from "react-icons/lu";
 import { BsCreditCard } from "react-icons/bs";
 import { RiLogoutBoxLine } from "react-icons/ri";
-
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { signOut , onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../firebase";
 const Sidebar = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [firebaseUser, setFirebaseUser] = useState(null);
+
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
   const [mobileSettingsOpen, setMobileSettingsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -118,26 +124,46 @@ const Sidebar = () => {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      // Simulate logout - replace with your actual logout logic
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Logged out");
+      // Sign out from Firebase
+      await signOut(auth);
+
+      // Clear local storage data
+      localStorage.removeItem("firebaseId");
+      // You can also clear other related data if needed
+      // localStorage.removeItem('userEmail');
+      // localStorage.removeItem('studioName');
+
+      // Redirect to login page
+      navigate("/login");
     } catch (error) {
       console.error("Error during logout:", error);
     } finally {
       setIsLoggingOut(false);
     }
   };
+   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setFirebaseUser(user);
+    });
 
-  // Get user info - replace with your actual user data
+    return () => unsubscribe();
+  }, []);
   const getUserInfo = () => {
+    if (firebaseUser) {
+      return {
+        name: firebaseUser.displayName || 'User',
+        email: firebaseUser.email || '',
+        avatar: firebaseUser.photoURL
+      };
+    }
     return {
-      name: "John Doe",
-      email: "john@example.com",
-      avatar: null,
+      name: 'User',
+      email: '',
+      avatar: null
     };
   };
 
-  const userInfo = getUserInfo();
+  const userInfo =  getUserInfo();
 
   const isSettingsActive = window.location.pathname.startsWith("/settings");
   const isSubItemActive = (path) => window.location.pathname === path;
@@ -158,7 +184,7 @@ const Sidebar = () => {
 
   const isActive = (path) => {
     // Mock location check - replace with your router logic
-    return window.location.pathname === path;
+    return location.pathname === path;
   };
 
   return (
@@ -187,7 +213,7 @@ const Sidebar = () => {
         <nav className="flex-1 p-2 space-y-2 relative z-50">
           {desktopMenuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = window.location.pathname === item.path;
+            const isActive = location.pathname === item.path;
 
             if (item.id === "settings") {
               return (
@@ -316,7 +342,9 @@ const Sidebar = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
-                    <User size={18} className="text-white" />
+                    <div >
+                      {userInfo.name.charAt(0).toUpperCase()}
+                    </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">

@@ -42,9 +42,16 @@ app.use('/estimate', editstimateRoute);
 const deleteestimateRoute = require('./routes/deleteEstimate');
 app.use('/estimate', deleteestimateRoute);
 
-// Get All Estimate
+// Get All Estimate +  Get single Estimate by ID
 const getEstimateRoute = require('./routes/getAllEstimates');
 app.use('/api/estimates', getEstimateRoute);
+
+// Plan Routes 
+const planRoutes = require('./routes/planRoutes');
+app.use('/api/plans', planRoutes);
+
+
+
 
 // const test = require('./routes/test');
 // app.use('/test', test);

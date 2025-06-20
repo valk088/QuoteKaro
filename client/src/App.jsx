@@ -12,6 +12,7 @@ import EditEstimate from "./Pages/EditEstimate";
 import { Toaster } from "react-hot-toast";
 import PlansCredits from "./Pages/PlansCredits";
 import Notifications from "./Components/NotificationMainn";
+import PreviewPage from "./Pages/PreviewPage";
 
 function App() {
   useEffect(() => {
@@ -34,6 +35,7 @@ function App() {
           <Route path="/plan-credits" element={<PlansCredits />}/>
           <Route path="/notifications" element={<Notifications />}/>
           <Route path="/settings/profile" element={<ProfilePage />}/>
+          <Route path="/preview/:id" element={<PreviewPage />}/>
         </Routes>
       </BrowserRouter>
     </>

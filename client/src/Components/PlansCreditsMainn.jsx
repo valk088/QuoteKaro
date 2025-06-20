@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CreditCard,
   Zap,
@@ -16,101 +16,69 @@ import {
   BarChart3,
   RefreshCw,
 } from "lucide-react";
+import axios from "axios"; 
 import WelcomeSection from "./WelcomeSection";
+import { useUser } from "../context/UserContext";
 
 const PlansCreditsMainn = () => {
+  
   const [billingCycle, setBillingCycle] = useState("monthly");
   const [activeTab, setActiveTab] = useState("plans");
+  const [subscriptionPlans, setSubscriptionPlans] = useState([]); 
+  const [creditPlans, setCreditPlans] = useState([]); 
 
-  // Dummy data for user's current plan
-  const currentPlan = {
-    name: "Professional",
-    creditsUsed: 145,
-    creditsTotal: 500,
-    renewalDate: "2025-07-18",
-    status: "active",
+   useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/plans`
+        );
+        const allPlans = res.data;
+        
+        // Filter plans into subscription and one-time credits
+        setSubscriptionPlans(allPlans.filter((p) => p.type === "subscription"));
+        setCreditPlans(allPlans.filter((p) => p.type === "one-time"));
+      } catch (err) {
+        console.error("Failed to fetch plans:", err);
+
+        
+      }
+    };
+
+    fetchPlans();
+  }, []);
+
+  const getPrice = (plan) => {
+    return billingCycle === "monthly" ? plan.monthlyPrice : plan.yearlyPrice;
   };
 
-  // Subscription plans data
-  const plans = [
-    {
-      id: "starter",
-      name: "Starter",
-      description: "Perfect for small studios",
-      monthlyPrice: 29,
-      yearlyPrice: 290,
-      credits: 200,
-      features: [
-        "Up to 200 estimates per month",
-        "Basic templates",
-        "Email support",
-        "PDF exports",
-        "Client portal access",
-      ],
-      popular: false,
-      color: "from-blue-500 to-cyan-500",
-    },
-    {
-      id: "professional",
-      name: "Professional",
-      description: "Most popular for growing businesses",
-      monthlyPrice: 59,
-      yearlyPrice: 590,
-      credits: 500,
-      features: [
-        "Up to 500 estimates per month",
-        "Premium templates",
-        "Priority support",
-        "Advanced PDF customization",
-        "Client portal + branding",
-        "Analytics dashboard",
-        "Team collaboration",
-      ],
-      popular: true,
-      color: "from-purple-500 to-pink-500",
-    },
-    {
-      id: "enterprise",
-      name: "Enterprise",
-      description: "For large studios and agencies",
-      monthlyPrice: 99,
-      yearlyPrice: 990,
-      credits: 1000,
-      features: [
-        "Unlimited estimates",
-        "Custom templates",
-        "24/7 phone support",
-        "White-label solution",
-        "API access",
-        "Advanced analytics",
-        "Multi-team management",
-        "Custom integrations",
-      ],
-      popular: false,
-      color: "from-emerald-500 to-teal-500",
-    },
-  ];
+  const getSavingsPercent = (plan) => {
+    if (billingCycle === "yearly" && plan.monthlyPrice && plan.yearlyPrice) {
+      return Math.round(
+        ((plan.monthlyPrice * 12 - plan.yearlyPrice) /
+          (plan.monthlyPrice * 12)) *
+          100
+      );
+    }
+    return 0; 
+  };
+  
+  const { userData, loading } = useUser();
+  if (loading || !userData) return null;
+  const USER = userData;
+  
 
-  // Credit packages for top-ups
-  const creditPackages = [
-    { credits: 100, price: 15, popular: false },
-    { credits: 250, price: 35, popular: true, bonus: 25 },
-    { credits: 500, price: 65, popular: false, bonus: 75 },
-    { credits: 1000, price: 120, popular: false, bonus: 200 },
-  ];
-
-  // Usage statistics
   const usageStats = [
     {
       label: "Estimates Created",
-      value: 145,
+      value: USER.total_estimates,
       icon: FileText,
       color: "text-blue-600",
     },
     { label: "Clients Served", value: 89, icon: Mail, color: "text-green-600" },
     {
       label: "Revenue Generated",
-      value: "$24,580",
+      value: USER.totalturnover,
       icon: TrendingUp,
       color: "text-purple-600",
     },
@@ -120,23 +88,14 @@ const PlansCreditsMainn = () => {
       icon: BarChart3,
       color: "text-pink-600",
     },
-  ];
+  ]
 
-  const getPrice = (plan) => {
-    return billingCycle === "monthly" ? plan.monthlyPrice : plan.yearlyPrice;
-  };
-
-  const getSavingsPercent = (plan) => {
-    return Math.round(
-      ((plan.monthlyPrice * 12 - plan.yearlyPrice) / (plan.monthlyPrice * 12)) *
-        100
-    );
-  };
-
+  
+  
   return (
     <div className="flex-1 p-4 md:p-8 overflow-y-auto z-0">
       {/* Header */}
-     <WelcomeSection name="Plan-Credits" />
+      <WelcomeSection name="Plan-Credits" />
 
       {/* Current Plan Overview */}
       <div className="bg-white/80 backdrop-blur-xl z-10 md:z-20 relative rounded-3xl shadow-xl border border-white/50 p-8 mb-8">
@@ -148,10 +107,18 @@ const PlansCreditsMainn = () => {
             <div className="flex items-center gap-3">
               <Crown className="w-5 h-5 text-yellow-500" />
               <span className="text-lg font-semibold text-purple-600">
-                {currentPlan.name}
+                {USER.plan}
               </span>
-              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                {currentPlan.status}
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  USER.isSuspended === false
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {USER.isSuspended === false
+                  ? "active"
+                  : "inactive"}
               </span>
             </div>
           </div>
@@ -170,10 +137,10 @@ const PlansCreditsMainn = () => {
             </div>
             <div className="mb-2">
               <span className="text-3xl font-bold">
-                {currentPlan.creditsUsed}
+                {USER.used_credits}
               </span>
               <span className="text-lg opacity-90">
-                /{currentPlan.creditsTotal}
+                /{USER.total_credits}
               </span>
             </div>
             <div className="w-full bg-white/20 rounded-full h-2 mb-2">
@@ -181,13 +148,13 @@ const PlansCreditsMainn = () => {
                 className="bg-white rounded-full h-2 transition-all duration-500"
                 style={{
                   width: `${
-                    (currentPlan.creditsUsed / currentPlan.creditsTotal) * 100
+                    (USER.used_credits / USER.total_credits) * 100
                   }%`,
                 }}
               ></div>
             </div>
             <span className="text-sm opacity-90">
-              {currentPlan.creditsTotal - currentPlan.creditsUsed} credits
+              {USER.left_credits} credits
               remaining
             </span>
           </div>
@@ -198,7 +165,12 @@ const PlansCreditsMainn = () => {
               <Calendar className="w-8 h-8 text-blue-500" />
               <span className="text-sm text-gray-500">Next Billing</span>
             </div>
-            <div className="text-2xl font-bold text-gray-800 mb-2">July 18</div>
+            <div className="text-2xl font-bold text-gray-800 mb-2">
+              {new Date(USER.planExpiresAt).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+              })}
+            </div>
             <div className="text-sm text-gray-600">Auto-renewal enabled</div>
           </div>
 
@@ -208,7 +180,7 @@ const PlansCreditsMainn = () => {
               <TrendingUp className="w-8 h-8 text-green-500" />
               <span className="text-sm text-gray-500">This Month</span>
             </div>
-            <div className="text-2xl font-bold text-gray-800 mb-2">28</div>
+            <div className="text-2xl font-bold text-gray-800 mb-2">{USER.total_estimates}</div>
             <div className="text-sm text-gray-600">Estimates created</div>
           </div>
         </div>
@@ -273,16 +245,16 @@ const PlansCreditsMainn = () => {
 
           {/* Plans Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {plans.map((plan) => (
+            {subscriptionPlans.map((plan) => (
               <div
-                key={plan.id}
+                key={plan._id} // Use plan._id from MongoDB
                 className={`relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border-2 transition-all hover:scale-105 ${
-                  plan.popular
+                  plan.isPopular
                     ? "border-purple-300 ring-4 ring-purple-100"
                     : "border-white/50"
                 }`}
               >
-                {plan.popular && (
+                {plan.isPopular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1">
                       <Star className="w-4 h-4" />
@@ -293,7 +265,9 @@ const PlansCreditsMainn = () => {
 
                 <div className="p-8">
                   <div
-                    className={`w-16 h-16 bg-gradient-to-br ${plan.color} rounded-2xl flex items-center justify-center mb-6`}
+                    className={`w-16 h-16 bg-gradient-to-br ${
+                      plan.color || "from-blue-500 to-cyan-500"
+                    } rounded-2xl flex items-center justify-center mb-6`}
                   >
                     <Crown className="w-8 h-8 text-white" />
                   </div>
@@ -310,11 +284,12 @@ const PlansCreditsMainn = () => {
                     <span className="text-gray-600">
                       /{billingCycle === "monthly" ? "month" : "year"}
                     </span>
-                    {billingCycle === "yearly" && (
-                      <div className="text-sm text-green-600 font-medium">
-                        Save {getSavingsPercent(plan)}% annually
-                      </div>
-                    )}
+                    {billingCycle === "yearly" &&
+                      getSavingsPercent(plan) > 0 && (
+                        <div className="text-sm text-green-600 font-medium">
+                          Save {getSavingsPercent(plan)}% annually
+                        </div>
+                      )}
                   </div>
 
                   <div className="mb-8">
@@ -337,15 +312,16 @@ const PlansCreditsMainn = () => {
 
                   <button
                     className={`w-full py-4 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 group ${
-                      plan.popular
-                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      USER.plan === plan.name
+                        ? "bg-gray-200 text-gray-500 cursor-not-allowed" // Style for current plan
+                        : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg"
                     }`}
+                    disabled={USER.plan === plan.name} // Disable if it's the current plan
                   >
-                    {currentPlan.name === plan.name
+                    {USER.name === plan.name
                       ? "Current Plan"
                       : "Choose Plan"}
-                    {currentPlan.name !== plan.name && (
+                    {USER.name !== plan.name && (
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     )}
                   </button>
@@ -368,16 +344,16 @@ const PlansCreditsMainn = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {creditPackages.map((pkg, index) => (
+            {creditPlans.map((pkg) => (
               <div
-                key={index}
+                key={pkg._id} // Use pkg._id from MongoDB
                 className={`relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border-2 transition-all hover:scale-105 ${
-                  pkg.popular
+                  pkg.isPopular
                     ? "border-purple-300 ring-4 ring-purple-100"
                     : "border-white/50"
                 }`}
               >
-                {pkg.popular && (
+                {pkg.isPopular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                       Best Value
@@ -394,15 +370,16 @@ const PlansCreditsMainn = () => {
                     <span className="text-3xl font-bold text-gray-800">
                       {pkg.credits}
                     </span>
-                    {pkg.bonus && (
+                    {pkg.bonusCredits > 0 && (
                       <div className="text-sm text-green-600 font-medium">
-                        +{pkg.bonus} bonus credits
+                        +{pkg.bonusCredits} bonus credits
                       </div>
                     )}
                   </div>
 
+                  {/* Assuming monthlyPrice is used for one-time credit price */}
                   <div className="text-2xl font-bold text-purple-600 mb-6">
-                    ${pkg.price}
+                    ${pkg.monthlyPrice}
                   </div>
 
                   <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-semibold hover:shadow-lg transition-all">

@@ -21,7 +21,7 @@ import { toast } from "react-hot-toast";
 const EditEstimateMainn = () => {
   const { id } = useParams();
   const { estimates, refreshEstimates } = useEstimates();
-  const { userData, loading } = useUser();
+  const { userData, loading, refresh } = useUser();
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +31,7 @@ const EditEstimateMainn = () => {
     phoneNumber: "",
     location: "",
     description: "",
+
     startDate: "",
     endDate: "",
     notes: "",
@@ -189,7 +190,17 @@ const EditEstimateMainn = () => {
     if (isLoading) return; // Prevent double submission
 
     setIsLoading(true);
+
     try {
+      const isExpired = new Date(userData.planExpiresAt) < new Date();
+      if (isExpired) {
+        toast.error("🚫 Your plan has expired. Please upgrade to continue.");
+
+        setTimeout(() => {
+          navigate("/plan-credits");
+        }, 2000);
+        return;
+      }
       const firebaseUID = localStorage.getItem("firebaseUID");
 
       if (!firebaseUID) {
@@ -243,6 +254,7 @@ const EditEstimateMainn = () => {
       if (res.data.success) {
         toast.success("Estimate updated successfully ✅");
         console.log("✅ Estimate updated successfully");
+        await refresh();
 
         // Refresh estimates if function is available
         if (refreshEstimates) {
@@ -251,13 +263,13 @@ const EditEstimateMainn = () => {
 
         setTimeout(() => {
           navigate("/dashboard");
-        }, 1500);
+        }, 2000);
       } else {
         toast.error("Failed to update estimate");
       }
     } catch (err) {
       console.error("❌ Failed to update estimate", err);
-      toast.error("Failed to update estimate. Please try again.");
+      toast.error("❌ Failed to update estimate")
     } finally {
       setIsLoading(false);
     }

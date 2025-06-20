@@ -1,10 +1,12 @@
 import {TrendingUp,TrendingDown,Zap,FileText,Users,DollarSign,} from "lucide-react";
 import { useUser } from "../context/UserContext";
 
-function QuickStates() {
-  const { userData , loading} = useUser();
-    if (loading || !userData) return null; 
 
+function QuickStates() {
+  const { userData , loading } = useUser();
+    if (loading || !userData) return null; 
+   
+   
   const quickStats = [
     {
       title: "Total Estimates",

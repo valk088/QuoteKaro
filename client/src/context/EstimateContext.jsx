@@ -2,12 +2,13 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { useUser } from "./UserContext";
+import { Await } from 'react-router-dom';
 const EstimateContext = createContext();
 
  const EstimateProvider = ({ children }) => {
   
   const firebaseUID = localStorage.getItem("firebaseUID");
-   const { refresh } = useUser(); 
+  //  const { refresh } = useUser(); 
 
   const [estimates, setEstimates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,7 @@ const EstimateContext = createContext();
       );
       if (res.data.success) {
         setEstimates(res.data.estimates);
+        
       }
     } catch (error) {
       console.error("Error fetching estimates", error);
@@ -39,6 +41,7 @@ const EstimateContext = createContext();
       if (res.data.success) {
         toast.success("Estimate deleted successfully ✅");
         await fetchEstimates();
+         
               
         
       }
@@ -51,6 +54,8 @@ const EstimateContext = createContext();
   
   useEffect(() => {
     fetchEstimates();
+    
+     
   }, []);
 
   return (

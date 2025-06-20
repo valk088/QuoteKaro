@@ -25,6 +25,7 @@ function MyEstimatesMainn() {
   const [activeFilter, setActiveFilter] = useState("all");
   if (loading || !estimates) return null;
 
+  
   const statusConfig = {
     sent: {
       icon: Check,
@@ -87,7 +88,7 @@ function MyEstimatesMainn() {
       label: "View",
       icon: Eye,
       color: "blue",
-      onClick: () => console.log("View", estimate._id),
+      onClick: () => navigate(`/preview/${estimate._id}`)
     },
   ];
     return (

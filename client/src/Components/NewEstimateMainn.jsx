@@ -15,11 +15,12 @@ import axios from "axios";
 import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-
+import { useEstimates } from "../context/EstimateContext";
 const NewEstimateMainn = () => {
-  const { userData, loading } = useUser();
-  if (loading || !userData) return null;
-
+  const { refreshEstimates } = useEstimates();
+  const { userData, loading, refresh } = useUser();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     clientName: "",
     functionName: "",
@@ -28,19 +29,52 @@ const NewEstimateMainn = () => {
     description: "",
     startDate: "",
     endDate: "",
-    notes: userData.notes,
+    notes: "",
   });
-  const navigate = useNavigate();
+  // Then after userData is available, populate notes:
+useEffect(() => {
+  if (userData && userData.notes) {
+    setFormData((prev) => ({
+      ...prev,
+      notes: userData.notes,
+    }));
+  }
+}, [userData]);
   const [services, setServices] = useState([
     { id: 1, serviceName: "", quantity: 1, pricePerUnit: 0, total: 0 },
   ]);
-
+ 
   const [totals, setTotals] = useState({
     subtotal: 0,
     discount: 0,
     discountType: "percentage", // 'percentage' or 'amount'
     netTotal: 0,
   });
+
+  const calculateTotals = () => {
+    const subtotal = services.reduce((sum, service) => sum + service.total, 0);
+    let discountAmount = 0;
+
+    if (totals.discountType === "percentage") {
+      discountAmount = (subtotal * totals.discount) / 100;
+    } else {
+      discountAmount = totals.discount;
+    }
+
+    const netTotal = Math.max(0, subtotal - discountAmount);
+
+    setTotals((prev) => ({
+      ...prev,
+      subtotal,
+      netTotal: netTotal,
+    }));
+  };
+
+  useEffect(() => {
+    calculateTotals();
+  }, [services, totals.discount, totals.discountType]);
+
+  if (loading || !userData) return null;
 
   const serviceOptions = [
     "Wedding Photography",
@@ -100,24 +134,7 @@ const NewEstimateMainn = () => {
     }
   };
 
-  const calculateTotals = () => {
-    const subtotal = services.reduce((sum, service) => sum + service.total, 0);
-    let discountAmount = 0;
-
-    if (totals.discountType === "percentage") {
-      discountAmount = (subtotal * totals.discount) / 100;
-    } else {
-      discountAmount = totals.discount;
-    }
-
-    const netTotal = Math.max(0, subtotal - discountAmount);
-
-    setTotals((prev) => ({
-      ...prev,
-      subtotal,
-      netTotal: netTotal,
-    }));
-  };
+  
 
   const handleDiscountChange = (field, value) => {
     setTotals((prev) => ({
@@ -126,12 +143,20 @@ const NewEstimateMainn = () => {
     }));
   };
 
-  useEffect(() => {
-    calculateTotals();
-  }, [services, totals.discount, totals.discountType]);
-
+  
+  
+  
   const handleSubmit = async () => {
     try {
+
+      const isExpired = new Date(userData.planExpiresAt) < new Date();
+      if (isExpired) {
+         toast.error("🚫 Your plan has expired. Please upgrade to continue.");
+        
+        setTimeout(() => {
+          navigate("/plan-credits");
+        }, 2000);
+      }
       const firebaseUID = localStorage.getItem("firebaseUID");
 
       // 🚨 Required field validation
@@ -166,7 +191,8 @@ const NewEstimateMainn = () => {
       if (res.data.success) {
         toast.success("Draft Saved ✅ ");
         console.log("✅ Estimate created successfully");
-
+        await refresh();
+        await refreshEstimates();
         setTimeout(() => {
           navigate("/dashboard");
         }, 1500);
@@ -175,6 +201,7 @@ const NewEstimateMainn = () => {
       console.error("❌ Failed to create estimate", err);
     }
   };
+  
   return (
     <div className="flex-1 p-0 m-0 md:p-8 overflow-y-auto">
       <WelcomeSection name="New-Estimate" />

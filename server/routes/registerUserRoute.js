@@ -19,7 +19,9 @@ router.post('/register', async (req, res) => {
       return res.status(200).json({ message: "User already exists", user });
     }
     const DEFAULT_CREDITS = 10;
-    user = new User({ firebaseUID, studioName, email , total_credits: DEFAULT_CREDITS,
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 30);
+    user = new User({ firebaseUID, studioName, email , planExpiresAt:expiryDate, total_credits: DEFAULT_CREDITS,
       left_credits: DEFAULT_CREDITS,});
     await user.save();
 

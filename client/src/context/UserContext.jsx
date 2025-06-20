@@ -10,6 +10,7 @@ export const UserProvider = ({ children }) => {
 
   const getUserData = async () => {
     try {
+      setLoading(true);
       const firebaseUID = localStorage.getItem("firebaseUID");
       if (!firebaseUID) return;
 
@@ -30,7 +31,7 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ userData, loading, refresh: setUserData }}>
+    <UserContext.Provider value={{ userData, loading, refresh: getUserData }}>
       {children}
     </UserContext.Provider>
   );

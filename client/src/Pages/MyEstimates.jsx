@@ -1,18 +1,11 @@
-import React from 'react'
-import Navbar from '../Components/Navbar'
-import Sidebar from '../Components/Sidebar'
-import MyEstimatesMainn from '../Components/MyEstimatesMainn'
+import MyEstimatesMainn from "../Components/MyEstimatesMainn";
+import Layout from "../Layout";
 function MyEstimates() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-     
-      <div className="flex md:flex-row flex-col md:h-screen">
-        <Sidebar />
-        <MyEstimatesMainn/>
-      </div>
-    </div>
-  )
+    <Layout>
+      <MyEstimatesMainn />
+    </Layout>
+  );
 }
 
-export default MyEstimates
+export default MyEstimates;

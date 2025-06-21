@@ -33,15 +33,6 @@ const planSchema = new mongoose.Schema({
 
   isPopular: { type: Boolean, default: false },
 
-  // isRecurring: {
-  //   type: Boolean,
-  //   default: false
-  // },
-  // billingCycle: {
-  //   type: String,
-  //   enum: ['monthly', 'yearly'],
-  //   default: 'monthly'
-  // },
 
   isActive: {
     type: Boolean,

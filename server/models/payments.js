@@ -1,7 +1,7 @@
 // models/Payment.js
 const mongoose = require('mongoose');
 
-const paymentSchema = new mongoose.Schema({
+const transactionSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -27,7 +27,9 @@ const paymentSchema = new mongoose.Schema({
     enum: ['success', 'failed', 'pending'],
     default: 'pending'
   },
+  
   method: String,
+
   creditsPurchased: Number,
 
   // ✅ Use 'type', not 'plantype'
@@ -46,4 +48,4 @@ const paymentSchema = new mongoose.Schema({
 
 
 
-module.exports = mongoose.model('Payment', paymentSchema);
+module.exports = mongoose.model('Transaction', transactionSchema);

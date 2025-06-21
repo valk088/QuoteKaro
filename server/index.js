@@ -30,6 +30,9 @@ app.use('/api/users',userProfileCompleteRoute)
 const createProfileRoute = require('./routes/createProfileRoute');
 app.use('/api/users', createProfileRoute); 
 
+
+
+
 // Create New Estimate
 const createestimateRoute = require('./routes/createEstimate');
 app.use('/api/estimates', createestimateRoute);
@@ -46,10 +49,18 @@ app.use('/estimate', deleteestimateRoute);
 const getEstimateRoute = require('./routes/getAllEstimates');
 app.use('/api/estimates', getEstimateRoute);
 
+
 // Plan Routes 
 const planRoutes = require('./routes/planRoutes');
 app.use('/api/plans', planRoutes);
 
+// Use the user routes
+const userRoutes = require('./routes/userRoutes');
+app.use('/api/users', userRoutes);
+
+// Transaction Route
+const transactionRoutes = require('./routes/transactionRoutes');
+app.use('/api/transactions', transactionRoutes);
 
 
 const paymentRoutes = require('./routes/paymentRoutes');

@@ -5,7 +5,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 const crypto = require('crypto');
-const Payment = require('../models/payments');
+const Transaction = require('../models/payments');
 const User = require('../models/user');
 
 exports.createOrder = async (req, res) => {
@@ -61,7 +61,7 @@ exports.verifyPayment = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid signature" });
 
     // Save Payment
-    await Payment.create({
+    await Transaction.create({
       userId,
       paymentGateway: 'razorpay',
       paymentId: razorpay_payment_id,

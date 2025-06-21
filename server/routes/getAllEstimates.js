@@ -3,6 +3,23 @@ const router = express.Router();
 const Estimate = require("../models/estimates");
 const User = require("../models/user");
 
+
+// GET all estimates for analytics dashboard
+// GET /api/estimates
+// This route is for fetching all estimates across all users for aggregate analytics
+router.get("/", async (req, res) => {
+  try {
+    // Populate userId with just enough information (e.g., studioName) for display purposes
+    const estimates = await Estimate.find({}).populate('userId', 'studioName');
+    res.status(200).json({ success: true, estimates });
+  } catch (err) {
+    console.error("Error fetching all estimates:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+});
+
+
+// get all estimate for a specific user (existing route)
 // get all estimate
 router.get("/get/:firebaseUID", async (req, res) => {
   try {

@@ -203,6 +203,14 @@ const EditEstimateMainn = () => {
       }
       const firebaseUID = localStorage.getItem("firebaseUID");
 
+      // check required credits at least 0.5
+      if (userData.left_credits <= 0) {
+        toast.error(" You're out of credits. Please upgrade to continue.");
+        setTimeout(() => {
+          navigate("/plan-credits");
+        }, 2000);
+        return;
+      }
       if (!firebaseUID) {
         toast.error("Authentication error. Please log in again.");
         setIsLoading(false);
@@ -269,7 +277,7 @@ const EditEstimateMainn = () => {
       }
     } catch (err) {
       console.error("❌ Failed to update estimate", err);
-      toast.error("❌ Failed to update estimate")
+      toast.error(" Failed to update estimate");
     } finally {
       setIsLoading(false);
     }

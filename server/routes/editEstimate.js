@@ -29,6 +29,14 @@ router.put("/edit/:id", async (req, res) => {
   const user = await User.findOne({ firebaseUID });
   if (!user) return res.status(404).json({ message: "User not found" });
 
+  
+    if (user.left_credits < 0.5 ) {
+      return res.status(403).json({
+        message:
+          "🚫 You are out of credits. Please upgrade your plan to continue.",
+      });
+    }
+
   const isPlanExpired = (user) => {
     if (!user.planExpiresAt) return true; // no expiry = expired
     return new Date(user.planExpiresAt) < new Date(); // if past date

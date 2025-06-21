@@ -52,7 +52,8 @@ app.use('/api/plans', planRoutes);
 
 
 
-
+const paymentRoutes = require('./routes/paymentRoutes');
+app.use('/api/payments', paymentRoutes);
 // const test = require('./routes/test');
 // app.use('/test', test);
 

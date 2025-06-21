@@ -16,32 +16,63 @@ import {
   BarChart3,
   RefreshCw,
 } from "lucide-react";
-import axios from "axios"; 
+import axios from "axios";
 import WelcomeSection from "./WelcomeSection";
 import { useUser } from "../context/UserContext";
+import { toast } from "react-hot-toast"; // Don't forget to import toast
 
 const PlansCreditsMainn = () => {
-  
   const [billingCycle, setBillingCycle] = useState("monthly");
   const [activeTab, setActiveTab] = useState("plans");
-  const [subscriptionPlans, setSubscriptionPlans] = useState([]); 
-  const [creditPlans, setCreditPlans] = useState([]); 
+  const [subscriptionPlans, setSubscriptionPlans] = useState([]);
+  const [creditPlans, setCreditPlans] = useState([]);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false); // New state to track Razorpay script
 
-   useEffect(() => {
+  const { userData, loading, refresh } = useUser();
+
+  // Effect to load Razorpay script
+  useEffect(() => {
+    const loadRazorpayScript = () => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => {
+        setRazorpayLoaded(true); // Set state to true when script is loaded
+      };
+      script.onerror = () => {
+        console.error("Failed to load Razorpay SDK script.");
+        toast.error("Failed to load payment gateway. Please refresh.");
+      };
+      document.body.appendChild(script);
+    };
+
+    if (!window.Razorpay) { // Only load if not already present
+      loadRazorpayScript();
+    } else {
+      setRazorpayLoaded(true); // If already present (e.g., component re-mounts)
+    }
+
+    // Cleanup function (optional, but good practice if needed for unmounting)
+    // return () => {
+    //   if (script && document.body.contains(script)) {
+    //     document.body.removeChild(script);
+    //   }
+    // };
+  }, []); // Run once on component mount
+
+  useEffect(() => {
     const fetchPlans = async () => {
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/api/plans`
         );
         const allPlans = res.data;
-        
-        // Filter plans into subscription and one-time credits
+
         setSubscriptionPlans(allPlans.filter((p) => p.type === "subscription"));
         setCreditPlans(allPlans.filter((p) => p.type === "one-time"));
       } catch (err) {
         console.error("Failed to fetch plans:", err);
-
-        
+        toast.error("Failed to fetch plans. Please try again.");
       }
     };
 
@@ -54,47 +85,136 @@ const PlansCreditsMainn = () => {
 
   const getSavingsPercent = (plan) => {
     if (billingCycle === "yearly" && plan.monthlyPrice && plan.yearlyPrice) {
+      const monthlyCostPerYear = plan.monthlyPrice * 12;
       return Math.round(
-        ((plan.monthlyPrice * 12 - plan.yearlyPrice) /
-          (plan.monthlyPrice * 12)) *
-          100
+        ((monthlyCostPerYear - plan.yearlyPrice) / monthlyCostPerYear) * 100
       );
     }
-    return 0; 
+    return 0;
   };
-  
-  const { userData, loading } = useUser();
-  if (loading || !userData) return null;
+
+  if (loading || !userData) {
+    return (
+      <div className="flex-1 p-4 md:p-8 flex items-center justify-center text-gray-600">
+        Loading user data and plans...
+      </div>
+    );
+  }
+
   const USER = userData;
-  
 
   const usageStats = [
     {
       label: "Estimates Created",
-      value: USER.total_estimates,
+      value: USER.total_estimates || 0,
       icon: FileText,
       color: "text-blue-600",
     },
-    { label: "Clients Served", value: 89, icon: Mail, color: "text-green-600" },
+    { label: "Clients Served", value: USER.total_clients || 0, icon: Mail, color: "text-green-600" },
     {
       label: "Revenue Generated",
-      value: USER.totalturnover,
+      value: USER.total_turnover ? `$${USER.total_turnover.toFixed(2)}` : "$0.00",
       icon: TrendingUp,
       color: "text-purple-600",
     },
     {
       label: "Conversion Rate",
-      value: "68%",
+      value: USER.conversion_rate ? `${USER.conversion_rate}%` : "0%",
       icon: BarChart3,
       color: "text-pink-600",
     },
-  ]
+  ];
 
-  
-  
+  const handleBuy = async (planDetails) => {
+    if (!razorpayLoaded) {
+      toast.error("Payment gateway not loaded yet. Please wait a moment.");
+      return;
+    }
+
+    if (!USER._id) {
+      toast.error("User not logged in. Please log in to make a purchase.");
+      return;
+    }
+
+    const userId = USER._id;
+    const amountInPaise = Math.round(planDetails.amount * 100);
+
+    try {
+      const orderRes = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/payments/create-order`,
+        {
+          amount: amountInPaise,
+          userId,
+          purpose: planDetails.type,
+          planName: planDetails.name,
+          billingCycle: planDetails.cycle,
+        }
+      );
+
+      const { order } = orderRes.data;
+
+      // Ensure window.Razorpay exists before using it
+      if (!window.Razorpay) {
+        toast.error("Razorpay script is not available. Please try again.");
+        return;
+      }
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "QuoteKaro",
+        description: `Purchase: ${planDetails.name}`,
+        order_id: order.id,
+        handler: async function (response) {
+          try {
+            const verifyRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/payments/verify`, {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              userId: userId,
+              planId: planDetails._id,
+              type: planDetails.type,
+              purchasedAmount: planDetails.amount,
+              credits: planDetails.credits,
+              planName: planDetails.name,
+              billingCycle: planDetails.cycle,
+            });
+
+            if (verifyRes.data.success) {
+                toast.success("Payment successful ✅ and plan updated!");
+                refresh();
+            } else {
+                toast.error("Payment verification failed. Please contact support.");
+            }
+          } catch (error) {
+            console.error("Error during payment verification:", error);
+            toast.error("Payment verification failed. Please contact support.");
+          }
+        },
+        prefill: {
+            name: USER.name,
+            email: USER.email,
+            contact: USER.phoneNumber,
+        },
+        theme: { color: "#7c3aed" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (error) {
+      console.error("Error creating Razorpay order:", error);
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(`Error: ${error.response.data.message}`);
+      } else {
+        toast.error("Failed to initiate payment. Please try again.");
+      }
+    }
+  };
+
   return (
     <div className="flex-1 p-4 md:p-8 overflow-y-auto z-0">
-      {/* Header */}
       <WelcomeSection name="Plan-Credits" />
 
       {/* Current Plan Overview */}
@@ -107,7 +227,7 @@ const PlansCreditsMainn = () => {
             <div className="flex items-center gap-3">
               <Crown className="w-5 h-5 text-yellow-500" />
               <span className="text-lg font-semibold text-purple-600">
-                {USER.plan}
+                {USER.plan || "N/A"}
               </span>
               <span
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -116,71 +236,69 @@ const PlansCreditsMainn = () => {
                     : "bg-red-100 text-red-700"
                 }`}
               >
-                {USER.isSuspended === false
-                  ? "active"
-                  : "inactive"}
+                {USER.isSuspended === false ? "active" : "inactive"}
               </span>
             </div>
           </div>
-          <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl hover:shadow-lg transition-all">
+          <button
+            onClick={() => setActiveTab("plans")}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl hover:shadow-lg transition-all"
+          >
             <RefreshCw className="w-4 h-4" />
             Upgrade Plan
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Credits Usage */}
           <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between mb-4">
               <Zap className="w-8 h-8" />
               <span className="text-sm opacity-90">Credits</span>
             </div>
             <div className="mb-2">
-              <span className="text-3xl font-bold">
-                {USER.used_credits}
-              </span>
-              <span className="text-lg opacity-90">
-                /{USER.total_credits}
-              </span>
+              <span className="text-3xl font-bold">{USER.used_credits || 0}</span>
+              <span className="text-lg opacity-90">/{USER.total_credits || 0}</span>
             </div>
             <div className="w-full bg-white/20 rounded-full h-2 mb-2">
               <div
                 className="bg-white rounded-full h-2 transition-all duration-500"
                 style={{
-                  width: `${
-                    (USER.used_credits / USER.total_credits) * 100
-                  }%`,
+                  width: `${USER.total_credits > 0 ? (USER.used_credits / USER.total_credits) * 100 : 0}%`,
                 }}
               ></div>
             </div>
             <span className="text-sm opacity-90">
-              {USER.left_credits} credits
-              remaining
+              {(USER.total_credits - USER.used_credits) || 0} credits remaining
             </span>
           </div>
 
-          {/* Renewal Date */}
           <div className="bg-white border-2 border-gray-100 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
               <Calendar className="w-8 h-8 text-blue-500" />
               <span className="text-sm text-gray-500">Next Billing</span>
             </div>
             <div className="text-2xl font-bold text-gray-800 mb-2">
-              {new Date(USER.planExpiresAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-              })}
+              {USER.planExpiresAt
+                ? new Date(USER.planExpiresAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "N/A"}
             </div>
-            <div className="text-sm text-gray-600">Auto-renewal enabled</div>
+            <div className="text-sm text-gray-600">
+              {USER.planExpiresAt ? "Auto-renewal enabled" : "No active plan"}
+            </div>
           </div>
 
-          {/* Quick Stats */}
           <div className="bg-white border-2 border-gray-100 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="w-8 h-8 text-green-500" />
               <span className="text-sm text-gray-500">This Month</span>
             </div>
-            <div className="text-2xl font-bold text-gray-800 mb-2">{USER.total_estimates}</div>
+            <div className="text-2xl font-bold text-gray-800 mb-2">
+              {USER.total_estimates || 0}
+            </div>
             <div className="text-sm text-gray-600">Estimates created</div>
           </div>
         </div>
@@ -237,7 +355,7 @@ const PlansCreditsMainn = () => {
               >
                 Yearly
                 <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                  Save 20%
+                  Save {getSavingsPercent(subscriptionPlans.find(p => p.isPopular)) || "20"}%
                 </span>
               </button>
             </div>
@@ -247,7 +365,7 @@ const PlansCreditsMainn = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {subscriptionPlans.map((plan) => (
               <div
-                key={plan._id} // Use plan._id from MongoDB
+                key={plan._id}
                 className={`relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border-2 transition-all hover:scale-105 ${
                   plan.isPopular
                     ? "border-purple-300 ring-4 ring-purple-100"
@@ -279,7 +397,7 @@ const PlansCreditsMainn = () => {
 
                   <div className="mb-6">
                     <span className="text-4xl font-bold text-gray-800">
-                      ${getPrice(plan)}
+                      ₹{getPrice(plan)}
                     </span>
                     <span className="text-gray-600">
                       /{billingCycle === "monthly" ? "month" : "year"}
@@ -296,7 +414,7 @@ const PlansCreditsMainn = () => {
                     <div className="flex items-center gap-2 mb-4">
                       <Zap className="w-5 h-5 text-yellow-500" />
                       <span className="font-semibold">
-                        {plan.credits} credits/month
+                        {plan.credits} estimates/month
                       </span>
                     </div>
 
@@ -311,17 +429,25 @@ const PlansCreditsMainn = () => {
                   </div>
 
                   <button
+                    onClick={() =>
+                      handleBuy({
+                        _id: plan._id,
+                        name: plan.name,
+                        amount: getPrice(plan),
+                        credits: plan.credits,
+                        type: "subscription",
+                        cycle: billingCycle,
+                      })
+                    }
                     className={`w-full py-4 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 group ${
-                      USER.plan === plan.name
-                        ? "bg-gray-200 text-gray-500 cursor-not-allowed" // Style for current plan
+                      USER.plan === plan.name && USER.billingCycle === billingCycle
+                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                         : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg"
                     }`}
-                    disabled={USER.plan === plan.name} // Disable if it's the current plan
+                    disabled={USER.plan === plan.name && USER.billingCycle === billingCycle || !razorpayLoaded}
                   >
-                    {USER.name === plan.name
-                      ? "Current Plan"
-                      : "Choose Plan"}
-                    {USER.name !== plan.name && (
+                    {USER.plan === plan.name && USER.billingCycle === billingCycle ? "Current Plan" : "Choose Plan"}
+                    {!(USER.plan === plan.name && USER.billingCycle === billingCycle) && (
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     )}
                   </button>
@@ -346,7 +472,7 @@ const PlansCreditsMainn = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {creditPlans.map((pkg) => (
               <div
-                key={pkg._id} // Use pkg._id from MongoDB
+                key={pkg._id}
                 className={`relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border-2 transition-all hover:scale-105 ${
                   pkg.isPopular
                     ? "border-purple-300 ring-4 ring-purple-100"
@@ -367,8 +493,8 @@ const PlansCreditsMainn = () => {
                   </div>
 
                   <div className="mb-4">
-                    <span className="text-3xl font-bold text-gray-800">
-                      {pkg.credits}
+                    <span className="text-3xl font-bold">
+                      {pkg.credits} estimates
                     </span>
                     {pkg.bonusCredits > 0 && (
                       <div className="text-sm text-green-600 font-medium">
@@ -377,12 +503,23 @@ const PlansCreditsMainn = () => {
                     )}
                   </div>
 
-                  {/* Assuming monthlyPrice is used for one-time credit price */}
                   <div className="text-2xl font-bold text-purple-600 mb-6">
-                    ${pkg.monthlyPrice}
+                    ₹{pkg.monthlyPrice}
                   </div>
 
-                  <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-semibold hover:shadow-lg transition-all">
+                  <button
+                    onClick={() =>
+                      handleBuy({
+                        _id: pkg._id,
+                        name: pkg.name,
+                        amount: pkg.monthlyPrice,
+                        credits: pkg.credits + (pkg.bonusCredits || 0),
+                        type: "one-time",
+                      })
+                    }
+                    className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-semibold hover:shadow-lg transition-all"
+                    disabled={!razorpayLoaded} // Disable if Razorpay is not loaded
+                  >
                     Buy Now
                   </button>
                 </div>
@@ -415,7 +552,6 @@ const PlansCreditsMainn = () => {
             })}
           </div>
 
-          {/* Usage Chart Placeholder */}
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 p-8">
             <h3 className="text-xl font-bold text-gray-800 mb-6">
               Credit Usage Over Time

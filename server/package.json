@@ -18,8 +18,10 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "crypto": "^1.0.1",
     "firebase-admin": "^13.4.0",
     "html2pdf.js": "^0.10.3",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "razorpay": "^2.9.6"
   }
 }

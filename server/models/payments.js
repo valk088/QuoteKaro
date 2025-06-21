@@ -12,8 +12,8 @@ const paymentSchema = new mongoose.Schema({
     enum: ['razorpay', 'stripe'],
     required: true
   },
-  paymentId: String,     // e.g., Razorpay payment ID
-  orderId: String,       // Your internal order ID
+  paymentId: String,
+  orderId: String,
   amount: {
     type: Number,
     required: true
@@ -27,14 +27,23 @@ const paymentSchema = new mongoose.Schema({
     enum: ['success', 'failed', 'pending'],
     default: 'pending'
   },
-  method: String,         // UPI, Card, etc.
+  method: String,
   creditsPurchased: Number,
-  creditsUsed: Number,
-  notes: String,
+
+  // ✅ Use 'type', not 'plantype'
+  type: {
+    type: String,
+    enum: ['subscription', 'one-time'],
+    required: true
+  },
+
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
+
+
+
 
 module.exports = mongoose.model('Payment', paymentSchema);

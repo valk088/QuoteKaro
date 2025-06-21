@@ -20,7 +20,7 @@ const NewEstimateMainn = () => {
   const { refreshEstimates } = useEstimates();
   const { userData, loading, refresh } = useUser();
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     clientName: "",
     functionName: "",
@@ -32,18 +32,18 @@ const NewEstimateMainn = () => {
     notes: "",
   });
   // Then after userData is available, populate notes:
-useEffect(() => {
-  if (userData && userData.notes) {
-    setFormData((prev) => ({
-      ...prev,
-      notes: userData.notes,
-    }));
-  }
-}, [userData]);
+  useEffect(() => {
+    if (userData && userData.notes) {
+      setFormData((prev) => ({
+        ...prev,
+        notes: userData.notes,
+      }));
+    }
+  }, [userData]);
   const [services, setServices] = useState([
     { id: 1, serviceName: "", quantity: 1, pricePerUnit: 0, total: 0 },
   ]);
- 
+
   const [totals, setTotals] = useState({
     subtotal: 0,
     discount: 0,
@@ -134,8 +134,6 @@ useEffect(() => {
     }
   };
 
-  
-
   const handleDiscountChange = (field, value) => {
     setTotals((prev) => ({
       ...prev,
@@ -143,22 +141,27 @@ useEffect(() => {
     }));
   };
 
-  
-  
-  
   const handleSubmit = async () => {
     try {
-
       const isExpired = new Date(userData.planExpiresAt) < new Date();
       if (isExpired) {
-         toast.error("🚫 Your plan has expired. Please upgrade to continue.");
-        
+        toast.error("🚫 Your plan has expired. Please upgrade to continue.");
+
         setTimeout(() => {
           navigate("/plan-credits");
         }, 2000);
       }
+
       const firebaseUID = localStorage.getItem("firebaseUID");
 
+      // check required credits at least 2
+      if (userData.left_credits <= 0) {
+        toast.error(" You're out of credits. Please upgrade to continue.");
+        setTimeout(() => {
+          navigate("/plan-credits");
+        }, 2000);
+        return;
+      }
       // 🚨 Required field validation
       const requiredFields = [
         formData.clientName,
@@ -201,7 +204,7 @@ useEffect(() => {
       console.error("❌ Failed to create estimate", err);
     }
   };
-  
+
   return (
     <div className="flex-1 p-0 m-0 md:p-8 overflow-y-auto">
       <WelcomeSection name="New-Estimate" />

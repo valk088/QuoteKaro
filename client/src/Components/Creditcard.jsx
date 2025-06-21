@@ -2,7 +2,7 @@ import React,{useEffect} from "react";
 import {Crown,Zap} from "lucide-react";
 import { useUser } from '../context/UserContext';
 import { Link } from "react-router-dom";
-function Creditcard() {
+function CreditCard() {
      const { userData , loading ,refresh} = useUser();
       if(loading || !userData) return null ;
 
@@ -33,4 +33,4 @@ function Creditcard() {
   );
 }
 
-export default Creditcard;
+export default CreditCard;

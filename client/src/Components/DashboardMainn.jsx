@@ -2,11 +2,8 @@ import { Copy, Share2 } from "lucide-react";
 import WelcomeSection from "./WelcomeSection";
 import QuickStates from "./QuickStates";
 import RecentEstimates from "./RecentEstimates";
-import TopClients from "./TopClients";
-import Creditcard from "./CreditCard";
+import CreditCard from "./CreditCard";
 import MiniCalender from "./MiniCalender";
-import { useEffect } from "react";
-import { useUser } from "../context/UserContext";
 function DashboardMainn() {
   
   return (
@@ -23,7 +20,7 @@ function DashboardMainn() {
 
         {/* Right Column */}
         <div className="space-y-6">
-          <Creditcard />
+          <CreditCard />
           <MiniCalender />
 
           {/* Website Link */}

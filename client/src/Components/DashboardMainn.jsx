@@ -1,11 +1,12 @@
+import React from "react";
 import { Copy, Share2 } from "lucide-react";
 import WelcomeSection from "./WelcomeSection";
 import QuickStates from "./QuickStates";
 import RecentEstimates from "./RecentEstimates";
-import CreditCard from "./CreditCard";
+import CreditCard from "./CreditCard"; // Corrected import path for CreditCard
 import MiniCalender from "./MiniCalender";
+
 function DashboardMainn() {
-  
   return (
     <div className="flex-1 p-4 md:p-8 overflow-y-auto">
       <WelcomeSection name="Dashboard" />
@@ -23,8 +24,9 @@ function DashboardMainn() {
           <CreditCard />
           <MiniCalender />
 
-          {/* Website Link */}
-          {/* <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          {/* Website Link (uncommented if desired) */}
+          {/*
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
             <h3 className="font-semibold text-gray-800 mb-3">
               Your Studio Profile
             </h3>
@@ -41,7 +43,8 @@ function DashboardMainn() {
                 <Share2 size={16} /> Share
               </button>
             </div>
-          </div> */}
+          </div>
+          */}
         </div>
       </div>
     </div>

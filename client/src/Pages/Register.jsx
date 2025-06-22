@@ -305,11 +305,11 @@ const Register = () => {
           <Sparkles className="w-4 h-4" />
         </div>
         <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
-          <Link to="/privacy" className="hover:text-purple-600 transition-colors">Privacy Policy</Link>
+          <Link to="/privacy-policy" className="hover:text-purple-600 transition-colors">Privacy Policy</Link>
           <span>•</span>
-          <Link to="/terms" className="hover:text-purple-600 transition-colors">Terms of Service</Link>
+          <Link to="/terms-conditions" className="hover:text-purple-600 transition-colors">Terms of Service</Link>
           <span>•</span>
-          <Link to="/support" className="hover:text-purple-600 transition-colors">Support</Link>
+          <Link to="/return-refund-policy" className="hover:text-purple-600 transition-colors">Return Refund Policy</Link>
         </div>
       </div>
     </div>

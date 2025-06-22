@@ -24,7 +24,7 @@ function DashboardMainn() {
           <MiniCalender />
 
           {/* Website Link */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          {/* <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
             <h3 className="font-semibold text-gray-800 mb-3">
               Your Studio Profile
             </h3>
@@ -41,7 +41,7 @@ function DashboardMainn() {
                 <Share2 size={16} /> Share
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

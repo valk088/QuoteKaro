@@ -1,4 +1,4 @@
-import   {useEffect}  from "react";
+import { useEffect } from "react";
 import "./App.css";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
@@ -13,6 +13,11 @@ import { Toaster } from "react-hot-toast";
 import PlansCredits from "./Pages/PlansCredits";
 import Notifications from "./Components/NotificationMainn";
 import PreviewPage from "./Pages/PreviewPage";
+";
+import PrivacyPolicyPage from "./Pages/PrivacyPolicyPage";
+import TermsConditionsPage from "./Pages/TermsConditionsPage";
+import RefundPolicyPage from "./Pages/RefundPolicyPage";
+import AboutUsPage from "./Pages/AboutUsPage";
 
 function App() {
   useEffect(() => {
@@ -31,13 +36,20 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/my-estimates" element={<MyEstimates />} />
           <Route path="/edit-estimate/:id" element={<EditEstimate />} />
-          <Route path="/new-estimate" element={<NewEstimate />}/>
-          <Route path="/plan-credits" element={<PlansCredits />}/>
-          <Route path="/notifications" element={<Notifications />}/>
-          <Route path="/settings/profile" element={<ProfilePage />}/>
-          <Route path="/preview/:id" element={<PreviewPage />}/>
+          <Route path="/new-estimate" element={<NewEstimate />} />
+          <Route path="/plan-credits" element={<PlansCredits />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/settings/profile" element={<ProfilePage />} />
+          <Route path="/preview/:id" element={<PreviewPage />} />
+
+          {/* Add routes for your policy pages if they are separate components */}
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-conditions" element={<TermsConditionsPage />} />
+          <Route path="/return-refund-policy" element={<RefundPolicyPage />}/>
+          <Route path="/about-us" element={<AboutUsPage />} />
         </Routes>
       </BrowserRouter>
+      
     </>
   );
 }

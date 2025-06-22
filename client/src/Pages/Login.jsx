@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { auth } from "../../firebase";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, Camera } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Sparkles,
+  Camera,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   signInWithEmailAndPassword,
@@ -42,12 +50,11 @@ const Login = () => {
 
       const hasProfile = await checkUserProfile(firebaseUID);
       if (hasProfile) {
-        navigate("/dashboard",{ replace: true });
+        navigate("/dashboard", { replace: true });
       } else {
-        navigate("/profile",{ replace: true });
+        navigate("/profile", { replace: true });
       }
       console.log("✅ Logged in!");
-      
     } catch (err) {
       console.error(err);
       setError("Invalid credentials or something went wrong.");
@@ -67,9 +74,9 @@ const Login = () => {
 
       const hasProfile = await checkUserProfile(firebaseUID);
       if (hasProfile) {
-        navigate("/dashboard",{ replace: true });
+        navigate("/dashboard", { replace: true });
       } else {
-        navigate("/profile" , { replace: true });
+        navigate("/profile", { replace: true });
       }
     } catch (err) {
       console.error(err);
@@ -85,13 +92,16 @@ const Login = () => {
         <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full opacity-20 blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full opacity-20 blur-3xl animate-pulse delay-1000"></div>
         <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-gradient-to-br from-blue-300 to-purple-200 rounded-full opacity-10 blur-2xl animate-pulse delay-500"></div>
-        
+
         {/* Subtle grid pattern */}
         <div className="absolute inset-0 opacity-5">
-          <div className="w-full h-full" style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.3) 1px, transparent 0)`,
-            backgroundSize: '50px 50px'
-          }}></div>
+          <div
+            className="w-full h-full"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.3) 1px, transparent 0)`,
+              backgroundSize: "50px 50px",
+            }}
+          ></div>
         </div>
       </div>
 
@@ -106,7 +116,10 @@ const Login = () => {
             QuoteKaro
           </h1>
           <p className="text-gray-500 text-sm">
-            <span className="font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent ">Sign in </span>to continue your creative journey
+            <span className="font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent ">
+              Sign in{" "}
+            </span>
+            to continue your creative journey
           </p>
         </div>
 
@@ -158,7 +171,11 @@ const Login = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-500 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -171,7 +188,10 @@ const Login = () => {
                   id="remember"
                   className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
                 />
-                <label htmlFor="remember" className="ml-2 text-gray-600 font-medium">
+                <label
+                  htmlFor="remember"
+                  className="ml-2 text-gray-600 font-medium"
+                >
                   Remember me
                 </label>
               </div>
@@ -264,15 +284,32 @@ const Login = () => {
         <div className="text-center mt-8 space-y-2">
           <div className="flex items-center justify-center gap-2 text-gray-400">
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm">Crafted with passion for photographers</span>
+            <span className="text-sm">
+              Crafted with passion for photographers
+            </span>
             <Sparkles className="w-4 h-4" />
           </div>
           <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
-            <Link to="/privacy" className="hover:text-purple-600 transition-colors">Privacy Policy</Link>
+            <Link
+              to="/privacy-policy"
+              className="hover:text-purple-600 transition-colors"
+            >
+              Privacy Policy
+            </Link>
             <span>•</span>
-            <Link to="/terms" className="hover:text-purple-600 transition-colors">Terms of Service</Link>
+            <Link
+              to="/terms-conditions"
+              className="hover:text-purple-600 transition-colors"
+            >
+              Terms of Service
+            </Link>
             <span>•</span>
-            <Link to="/support" className="hover:text-purple-600 transition-colors">Support</Link>
+            <Link
+              to="/return-refund-policy"
+              className="hover:text-purple-600 transition-colors"
+            >
+              Return Refund Policy
+            </Link>
           </div>
         </div>
       </div>

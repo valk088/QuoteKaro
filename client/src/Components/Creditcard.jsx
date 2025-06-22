@@ -1,10 +1,10 @@
-import React,{useEffect} from "react";
+import React from "react";
 import {Crown,Zap} from "lucide-react";
 import { useUser } from '../context/UserContext';
 import { Link } from "react-router-dom";
 
 function CreditCard() {
-  const { userData , loading ,refresh} = useUser();
+  const { userData , loading } = useUser();
 
   if(loading || !userData) {
     // Optionally return a loading skeleton or null while data is fetching

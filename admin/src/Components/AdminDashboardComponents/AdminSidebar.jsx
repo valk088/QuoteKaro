@@ -26,13 +26,14 @@ const AdminSidebar = ({ sidebarItems, activeSection, setActiveSection, sidebarOp
               <button
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
-                className={`w-full flex items-center px-3 py-2 rounded-lg transition-colors ${
-                  activeSection === item.id
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                }`}
+                className={`w-full flex items-center px-3 py-2 rounded-lg transition-colors
+                  ${sidebarOpen ? 'justify-start' : 'justify-center'}
+                  ${activeSection === item.id
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  }`}
               >
-                <Icon size={20} className="flex-shrink-0" />
+                <Icon size={20} className="flex-shrink-0" /> 
                 {sidebarOpen && <span className="ml-3 font-medium">{item.label}</span>}
               </button>
             );

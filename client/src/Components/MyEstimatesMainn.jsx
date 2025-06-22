@@ -88,7 +88,7 @@ function MyEstimatesMainn() {
       label: "View",
       icon: Eye,
       color: "blue",
-      onClick: () => navigate(`/preview/${estimate._id}`)
+      // onClick: () => navigate(`/preview/${estimate._id}`)
     },
   ];
     return (

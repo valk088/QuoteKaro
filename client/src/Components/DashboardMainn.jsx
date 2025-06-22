@@ -3,7 +3,7 @@ import { Copy, Share2 } from "lucide-react";
 import WelcomeSection from "./WelcomeSection";
 import QuickStates from "./QuickStates";
 import RecentEstimates from "./RecentEstimates.jsx";
-import CreditCard from "./CreditCard.jsx"; // Corrected import path for CreditCard
+// import CreditCard from "./CreditCard.jsx"; // Corrected import path for CreditCard
 import MiniCalender from "./MiniCalender.jsx";
 
 function DashboardMainn() {
@@ -21,7 +21,7 @@ function DashboardMainn() {
 
         {/* Right Column */}
         <div className="space-y-6">
-          <CreditCard />
+          {/* <CreditCard /> */}
           <MiniCalender />
 
           {/* Website Link (uncommented if desired) */}

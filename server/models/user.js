@@ -40,6 +40,7 @@ const userSchema = new mongoose.Schema(
     totalturnover: { type: Number, default: 0 },
 
     isSuspended: { type: Boolean, default: false },
+    lastLogin: {type: Date,default: Date.now,},
     joinedAt: { type: Date, default: Date.now },
 
     planExpiresAt: {

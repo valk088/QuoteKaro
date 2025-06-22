@@ -1,102 +1,68 @@
-import React, { useState } from 'react';
-import { Bell, Check, X, AlertCircle, Info, CheckCircle, AlertTriangle, Settings, Filter, Search, MoreVertical, Trash2, CheckCheck } from 'lucide-react';
-const NotificationMainn = () => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: 'success',
-      title: 'Payment Successful',
-      message: 'Your subscription has been renewed successfully for another month.',
-      time: '2 minutes ago',
-      read: false,
-      category: 'billing'
-    },
-    {
-      id: 2,
-      type: 'info',
-      title: 'New Feature Available',
-      message: 'Dark mode is now available in settings. Try it out!',
-      time: '1 hour ago',
-      read: false,
-      category: 'updates'
-    },
-    {
-      id: 3,
-      type: 'warning',
-      title: 'Storage Almost Full',
-      message: 'You are using 85% of your storage quota. Consider upgrading your plan.',
-      time: '3 hours ago',
-      read: true,
-      category: 'system'
-    },
-    {
-      id: 4,
-      type: 'error',
-      title: 'Login Attempt Failed',
-      message: 'Someone tried to access your account from an unrecognized device.',
-      time: '5 hours ago',
-      read: false,
-      category: 'security'
-    },
-    {
-      id: 5,
-      type: 'info',
-      title: 'Weekly Report Ready',
-      message: 'Your weekly activity report is ready for download.',
-      time: '1 day ago', 
-      read: true,
-      category: 'reports'
-    },
-    {
-      id: 6,
-      type: 'success',
-      title: 'Profile Updated',
-      message: 'Your profile information has been successfully updated.',
-      time: '2 days ago',
-      read: true,
-      category: 'account'
-    },
-    {
-      id: 7,
-      type: 'warning',
-      title: 'API Rate Limit Warning',
-      message: 'You have used 90% of your monthly API quota.',
-      time: '3 days ago',
-      read: false,
-      category: 'system'
-    },
-    {
-      id: 8,
-      type: 'info',
-      title: 'Maintenance Scheduled',
-      message: 'System maintenance is scheduled for tomorrow at 2:00 AM UTC.',
-      time: '1 week ago',
-      read: true,
-      category: 'updates'
-    }
-  ]);
+import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
+import { Bell, Search, Trash2 } from 'lucide-react';
+import {
+  CheckCircle, AlertCircle, Info, AlertTriangle, Settings, Check, X, CheckCheck
+} from 'lucide-react';
+import { useUser } from "../context/UserContext";
 
+// Import new sub-components
+import ClientNotificationSidebar from './EmailNotificationSystemComponent/ClientNotificationSidebar.jsx';
+import ClientNotificationList from './EmailNotificationSystemComponent/ClientNotificationList.jsx';
+
+
+const NotificationMainn = () => {
+   
+  const { userData, loading: userLoading } = useUser();
+
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedNotifications, setSelectedNotifications] = useState(new Set());
 
-  const categories = [
-    { id: 'all', label: 'All', count: notifications.length },
-    { id: 'unread', label: 'Unread', count: notifications.filter(n => !n.read).length },
-    { id: 'billing', label: 'Billing', count: notifications.filter(n => n.category === 'billing').length },
-    { id: 'security', label: 'Security', count: notifications.filter(n => n.category === 'security').length },
-    { id: 'updates', label: 'Updates', count: notifications.filter(n => n.category === 'updates').length },
-    { id: 'system', label: 'System', count: notifications.filter(n => n.category === 'system').length },
-    { id: 'reports', label: 'Reports', count: notifications.filter(n => n.category === 'reports').length },
-    { id: 'account', label: 'Account', count: notifications.filter(n => n.category === 'account').length }
-  ];
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+ 
 
+  //  if (userLoading || !userData) return null; 
+  // const userId = userData._id || userData.id;
+  const DUMMY_USER_ID = "6855864c3fae02dc1914c532";
+  // --- Fetch Notifications ---
+  const fetchUserNotifications = async () => {
+    setLoading(true);
+    try {
+      // Fetch notifications for the specific user
+      const response = await axios.get(`${API_BASE_URL}/api/notifications/user/${DUMMY_USER_ID}`);
+      setNotifications(response.data.notifications);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching user notifications:", err);
+      setError("Failed to load your notifications. Please try again later.");
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserNotifications();
+  }, [DUMMY_USER_ID]); // Re-fetch if userId changes (important for real auth)
+
+  // --- Helper Functions ---
   const getNotificationIcon = (type) => {
     switch(type) {
       case 'success': return <CheckCircle className="text-green-500" size={20} />;
       case 'error': return <AlertCircle className="text-red-500" size={20} />;
       case 'warning': return <AlertTriangle className="text-yellow-500" size={20} />;
       case 'info': return <Info className="text-blue-500" size={20} />;
+      // Categories can also have icons if needed
+      case 'billing': return <Bell className="text-purple-500" size={20} />;
+      case 'updates': return <Bell className="text-blue-500" size={20} />;
+      case 'system': return <Bell className="text-yellow-500" size={20} />;
+      case 'security': return <Bell className="text-red-500" size={20} />;
+      case 'reports': return <Bell className="text-green-500" size={20} />;
+      case 'account': return <Bell className="text-indigo-500" size={20} />;
       default: return <Bell className="text-gray-500" size={20} />;
     }
   };
@@ -107,51 +73,95 @@ const NotificationMainn = () => {
       case 'error': return 'border-l-red-500';
       case 'warning': return 'border-l-yellow-500';
       case 'info': return 'border-l-blue-500';
-      default: return 'border-l-gray-500';
+      // For general styling based on category, you can map category to a color if 'type' is not strict enough
+      case 'billing': return 'border-l-purple-500';
+      case 'security': return 'border-l-red-500';
+      case 'updates': return 'border-l-blue-500';
+      case 'system': return 'border-l-yellow-500';
+      case 'reports': return 'border-l-green-500';
+      case 'account': return 'border-l-indigo-500';
+      default: return 'border-l-gray-300';
     }
   };
 
-  const filteredNotifications = notifications.filter(notification => {
-    const matchesSearch = notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         notification.message.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (filter === 'all') return matchesSearch;
-    if (filter === 'unread') return !notification.read && matchesSearch;
-    return notification.category === filter && matchesSearch;
-  });
+  // --- Filtered Notifications ---
+  const filteredNotifications = useMemo(() => {
+    return notifications.filter(notification => {
+      const matchesSearch = notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            notification.message.toLowerCase().includes(searchTerm.toLowerCase());
 
-  const markAsRead = (id) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-  };
-
-  const markAsUnread = (id) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id ? { ...notification, read: false } : notification
-      )
-    );
-  };
-
-  const deleteNotification = (id) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
-    setSelectedNotifications(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(id);
-      return newSet;
+      if (filter === 'all') return matchesSearch;
+      if (filter === 'unread') return !notification.read && matchesSearch;
+      return notification.category === filter && matchesSearch;
     });
+  }, [notifications, filter, searchTerm]);
+
+  // --- Notification Actions ---
+  const markAsRead = async (id) => {
+    try {
+      await axios.patch(`${API_BASE_URL}/api/notifications/${id}`, { read: true });
+      fetchUserNotifications(); // Re-fetch to update UI and counts
+    } catch (err) {
+      console.error("Error marking as read:", err);
+      alert("Failed to mark notification as read.");
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(notification => ({ ...notification, read: true })));
+  const markAsUnread = async (id) => {
+    try {
+      await axios.patch(`${API_BASE_URL}/api/notifications/${id}`, { read: false });
+      fetchUserNotifications();
+    } catch (err) {
+      console.error("Error marking as unread:", err);
+      alert("Failed to mark notification as unread.");
+    }
   };
 
-  const deleteSelected = () => {
-    setNotifications(prev => prev.filter(notification => !selectedNotifications.has(notification.id)));
-    setSelectedNotifications(new Set());
+  const deleteNotification = async (id) => {
+    if (window.confirm('Are you sure you want to delete this notification?')) {
+      try {
+        await axios.delete(`${API_BASE_URL}/api/notifications/${id}`);
+        fetchUserNotifications();
+        setSelectedNotifications(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
+        });
+      } catch (err) {
+        console.error("Error deleting notification:", err);
+        alert("Failed to delete notification.");
+      }
+    }
+  };
+
+  const markAllAsRead = async () => {
+    const unreadIds = notifications.filter(n => !n.read).map(n => n._id);
+    if (unreadIds.length === 0) return;
+
+    if (window.confirm('Mark all unread notifications as read?')) {
+      try {
+        await axios.post(`${API_BASE_URL}/api/notifications/bulk-update`, { ids: unreadIds, updateFields: { read: true } });
+        fetchUserNotifications();
+      } catch (err) {
+        console.error("Error marking all as read:", err);
+        alert("Failed to mark all notifications as read.");
+      }
+    }
+  };
+
+  const deleteSelected = async () => {
+    if (selectedNotifications.size === 0) return;
+
+    if (window.confirm(`Are you sure you want to delete ${selectedNotifications.size} selected notifications?`)) {
+      try {
+        await axios.post(`${API_BASE_URL}/api/notifications/bulk-delete`, { ids: Array.from(selectedNotifications) });
+        fetchUserNotifications();
+        setSelectedNotifications(new Set()); // Clear selection
+      } catch (err) {
+        console.error("Error deleting selected notifications:", err);
+        alert("Failed to delete selected notifications.");
+      }
+    }
   };
 
   const toggleSelectNotification = (id) => {
@@ -166,7 +176,50 @@ const NotificationMainn = () => {
     });
   };
 
+  // Memoized categories for sidebar to prevent unnecessary re-renders
+  const categories = useMemo(() => {
+    const baseCategories = [
+      { id: 'all', label: 'All', count: notifications.length },
+      { id: 'unread', label: 'Unread', count: notifications.filter(n => !n.read).length },
+    ];
+    // Dynamically add categories based on fetched notifications
+    const dynamicCategories = [...new Set(notifications.map(n => n.category))]
+      .sort() // Sort alphabetically for consistent order
+      .map(cat => ({
+        id: cat,
+        label: cat.charAt(0).toUpperCase() + cat.slice(1), // Capitalize for display
+        count: notifications.filter(n => n.category === cat).length
+      }));
+
+    return [...baseCategories, ...dynamicCategories];
+  }, [notifications]);
+
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-gray-700 text-xl flex items-center">
+          <svg className="animate-spin -ml-1 mr-3 h-8 w-8 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Loading Notifications...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-red-500 text-xl flex items-center">
+          <AlertTriangle className="mr-3" size={24} />
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -182,7 +235,7 @@ const NotificationMainn = () => {
               <p className="text-gray-600">Stay updated with your latest activities</p>
             </div>
           </div>
-          
+
           {unreadCount > 0 && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -201,46 +254,13 @@ const NotificationMainn = () => {
           )}
         </div>
 
-        <div className=" grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
-          <div className="hidden lg:block lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8">
-              <div className="flex items-center gap-2 mb-6">
-                <Filter size={20} className="text-gray-600" />
-                <h2 className="text-lg font-semibold text-gray-800">Filter</h2>
-              </div>
-              
-              <div className="space-y-2">
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setFilter(category.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 ${
-                      filter === category.id
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <span className="capitalize">{category.label}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      filter === category.id
-                        ? 'bg-white/20 text-white'
-                        : 'bg-gray-200 text-gray-600'
-                    }`}>
-                      {category.count}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-300">
-                  <Settings size={20} />
-                  Notification Settings
-                </button>
-              </div>
-            </div>
-          </div>
+          <ClientNotificationSidebar
+            categories={categories}
+            filter={filter}
+            setFilter={setFilter}
+          />
 
           {/* Main Content */}
           <div className="lg:col-span-3">
@@ -258,7 +278,7 @@ const NotificationMainn = () => {
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  
+
                   {selectedNotifications.size > 0 && (
                     <button
                       onClick={deleteSelected}
@@ -272,91 +292,17 @@ const NotificationMainn = () => {
               </div>
 
               {/* Notifications List */}
-              <div className="divide-y divide-gray-200">
-                {filteredNotifications.length === 0 ? (
-                  <div className="p-12 text-center">
-                    <Bell className="mx-auto mb-4 text-gray-400" size={48} />
-                    <h3 className="text-lg font-medium text-gray-800 mb-2">No notifications found</h3>
-                    <p className="text-gray-600">
-                      {searchTerm ? 'Try adjusting your search terms' : 'You\'re all caught up!'}
-                    </p>
-                  </div>
-                ) : (
-                  filteredNotifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-6 hover:bg-gray-50 transition-colors ${
-                        !notification.read ? 'bg-blue-50/50' : ''
-                      } border-l-4 ${getNotificationBorder(notification.type)}`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedNotifications.has(notification.id)}
-                          onChange={() => toggleSelectNotification(notification.id)}
-                          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        
-                        <div className="flex-shrink-0 mt-1">
-                          {getNotificationIcon(notification.type)}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className={`text-lg font-semibold ${
-                                  !notification.read ? 'text-gray-900' : 'text-gray-700'
-                                }`}>
-                                  {notification.title}
-                                </h3>
-                                {!notification.read && (
-                                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                )}
-                              </div>
-                              <p className="text-gray-600 mb-2">{notification.message}</p>
-                              <div className="flex items-center gap-4 text-sm text-gray-500">
-                                <span>{notification.time}</span>
-                                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs capitalize">
-                                  {notification.category}
-                                </span>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-2 ml-4">
-                              {!notification.read ? (
-                                <button
-                                  onClick={() => markAsRead(notification.id)}
-                                  className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                                  title="Mark as read"
-                                >
-                                  <Check size={16} />
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => markAsUnread(notification.id)}
-                                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                                  title="Mark as unread"
-                                >
-                                  <CheckCheck size={16} />
-                                </button>
-                              )}
-                              
-                              <button
-                                onClick={() => deleteNotification(notification.id)}
-                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                                title="Delete notification"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+              <ClientNotificationList
+                filteredNotifications={filteredNotifications}
+                searchTerm={searchTerm}
+                selectedNotifications={selectedNotifications}
+                getNotificationIcon={getNotificationIcon}
+                getNotificationBorder={getNotificationBorder}
+                toggleSelectNotification={toggleSelectNotification}
+                markAsRead={markAsRead}
+                markAsUnread={markAsUnread}
+                deleteNotification={deleteNotification}
+              />
             </div>
           </div>
         </div>

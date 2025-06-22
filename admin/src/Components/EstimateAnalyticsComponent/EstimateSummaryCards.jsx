@@ -21,7 +21,7 @@ const EstimateSummaryCards = ({ totalEstimates, totalValue, averageValue, accept
             <DollarSign className="text-green-400" size={20} />
           </div>
           <div className="ml-3">
-            <p className="text-2xl font-bold text-white">${totalValue.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-white">₹{totalValue.toLocaleString()}</p>
             <p className="text-gray-400 text-sm">Total Value</p>
           </div>
         </div>
@@ -32,7 +32,7 @@ const EstimateSummaryCards = ({ totalEstimates, totalValue, averageValue, accept
             <Tag className="text-purple-400" size={20} />
           </div>
           <div className="ml-3">
-            <p className="text-2xl font-bold text-white">${averageValue}</p>
+            <p className="text-2xl font-bold text-white">₹{averageValue}</p>
             <p className="text-gray-400 text-sm">Avg. Estimate Value</p>
           </div>
         </div>

@@ -65,8 +65,21 @@ app.use('/api/transactions', transactionRoutes);
 
 const paymentRoutes = require('./routes/paymentRoutes');
 app.use('/api/payments', paymentRoutes);
-// const test = require('./routes/test');
-// app.use('/test', test);
+
+
+const campaignRoutes = require('./routes/campaignRoutes');
+app.use('/api/campaigns', campaignRoutes);
+
+
+const notificationRoutes = require('./routes/notificationRoutes');
+app.use('/api/notifications', notificationRoutes);
+
+const emailTemplateRoutes = require('./routes/emailTemplateRoutes');
+app.use('/api/email-templates', emailTemplateRoutes);
+
+const dashboardRoutes = require('./routes/dashboardRoutes');
+app.use('/api/dashboard', dashboardRoutes); 
+
 
 app.listen(process.env.PORT ,  () =>{
     console.log(`server started on port  ${process.env.PORT}`);

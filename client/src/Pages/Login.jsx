@@ -18,8 +18,13 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 
+import { useUser } from "../context/UserContext";
+import axios from "axios";
+
 const Login = () => {
+  
   const navigate = useNavigate();
+  const { login, refresh } = useUser();
   const [email, setEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
@@ -48,6 +53,8 @@ const Login = () => {
       );
       const firebaseUID = userCredential.user.uid;
 
+      await login(firebaseUID);
+
       const hasProfile = await checkUserProfile(firebaseUID);
       if (hasProfile) {
         navigate("/dashboard", { replace: true });
@@ -65,22 +72,53 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
+
     try {
       await setPersistence(auth, browserLocalPersistence);
       const result = await signInWithPopup(auth, provider);
+
       const firebaseUID = result.user.uid;
+      const email = result.user.email; //
+      const studioName = result.user.displayName || email || "My Studio";
 
-      console.log("✅ Logged in with Google!");
+      console.log("✅ Logged in with Google (Firebase)!");
 
+      await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/user/register`,
+        {
+          firebaseUID,
+          studioName,
+          email,
+        }
+      );
+
+      await refresh();
       const hasProfile = await checkUserProfile(firebaseUID);
+
       if (hasProfile) {
         navigate("/dashboard", { replace: true });
       } else {
         navigate("/profile", { replace: true });
       }
+      // toast.success("Successfully logged in with Google!"); // Optional: Add toast notification
     } catch (err) {
-      console.error(err);
-      setError("Google sign-in failed.");
+      console.error("Error during Google login:", err);
+      // More specific error handling for user feedback
+      let errorMessage = "Google sign-in failed. Please try again.";
+      if (err.code === "auth/popup-closed-by-user") {
+        errorMessage = "Google login was cancelled.";
+      } else if (err.code === "auth/cancelled-popup-request") {
+        errorMessage = "Too many login attempts. Please wait a moment.";
+      } else if (
+        err.response &&
+        err.response.data &&
+        err.response.data.message
+      ) {
+        errorMessage = "Backend error: " + err.response.data.message;
+      }
+      setError(errorMessage);
+    } finally {
+      // setLoading(false); // Ensure loading state is reset
     }
   };
 

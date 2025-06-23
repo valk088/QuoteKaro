@@ -155,7 +155,7 @@ const NewEstimateMainn = () => {
       const firebaseUID = localStorage.getItem("firebaseUID");
 
       // check required credits at least 2
-      if (userData.left_credits <= 0) {
+      if (userData.left_credits <= 2) {
         toast.error(" You're out of credits. Please upgrade to continue.");
         setTimeout(() => {
           navigate("/plan-credits");

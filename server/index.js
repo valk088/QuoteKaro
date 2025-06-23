@@ -80,6 +80,8 @@ app.use('/api/email-templates', emailTemplateRoutes);
 const dashboardRoutes = require('./routes/dashboardRoutes');
 app.use('/api/dashboard', dashboardRoutes); 
 
+const logoUploadRoutes = require('./routes/logoUpload');
+app.use('/api', logoUploadRoutes);
 
 app.listen(process.env.PORT ,  () =>{
     console.log(`server started on port  ${process.env.PORT}`);

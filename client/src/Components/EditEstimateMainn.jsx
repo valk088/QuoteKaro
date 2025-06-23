@@ -8,6 +8,10 @@ import {
   Percent,
   Save,
   Send,
+  CheckCircle,
+  Clock,
+  XCircle,
+  AlertCircle,
 } from "lucide-react";
 import { useEffect, useState, React, useMemo } from "react";
 import axios from "axios";
@@ -26,12 +30,12 @@ const EditEstimateMainn = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
+    status:"",
     clientName: "",
     functionName: "",
     phoneNumber: "",
     location: "",
     description: "",
-
     startDate: "",
     endDate: "",
     notes: "",
@@ -63,6 +67,13 @@ const EditEstimateMainn = () => {
     "Video Editing",
   ];
 
+  const statusOptions = [
+    { value: "draft", label: "Draft", icon: AlertCircle, color: "text-gray-600" },
+    { value: "sent", label: "Sent", icon: Clock, color: "text-blue-600" },
+    { value: "approved", label: "Approved", icon: CheckCircle, color: "text-green-600" },
+    { value: "rejected", label: "Rejected", icon: XCircle, color: "text-red-600" },
+  ];
+
   const estimateToEdit = useMemo(() => {
     return estimates.find((e) => e._id === id);
   }, [estimates, id]);
@@ -70,6 +81,7 @@ const EditEstimateMainn = () => {
   useEffect(() => {
     if (estimateToEdit && userData) {
       setFormData({
+        status: estimateToEdit.status || "draft",
         clientName: estimateToEdit.clientName || "",
         functionName: estimateToEdit.functionName || "",
         phoneNumber: estimateToEdit.phoneNumber || "",
@@ -186,6 +198,19 @@ const EditEstimateMainn = () => {
     calculateTotals();
   }, [services, totals.discount, totals.discountType]);
 
+  const getStatusBadge = (status) => {
+    const statusOption = statusOptions.find((option) => option.value === status);
+    if (!statusOption) return null;
+
+    const Icon = statusOption.icon;
+    return (
+      <div className={`flex items-center gap-2 ${statusOption.color}`}>
+        <Icon size={16} />
+        <span className="font-medium">{statusOption.label}</span>
+      </div>
+    );
+  };
+
   const handleSubmit = async () => {
     if (isLoading) return; // Prevent double submission
 
@@ -204,8 +229,15 @@ const EditEstimateMainn = () => {
       const firebaseUID = localStorage.getItem("firebaseUID");
 
       // check required credits at least 0.5
-      if (userData.left_credits <= 0) {
+      if (userData.left_credits <= 0  ) {
         toast.error(" You're out of credits. Please upgrade to continue.");
+        setTimeout(() => {
+          navigate("/plan-credits");
+        }, 2000);
+        return;
+      }
+      if (userData.isSuspended ) {
+        toast.error(" You're account is Suspended");
         setTimeout(() => {
           navigate("/plan-credits");
         }, 2000);
@@ -250,7 +282,6 @@ const EditEstimateMainn = () => {
         discount: totals.discount,
         discountType: totals.discountType,
         netTotal: totals.netTotal,
-        status: "draft",
         date: new Date().toISOString(),
       };
 
@@ -285,11 +316,37 @@ const EditEstimateMainn = () => {
 
   if (loading || !estimates) return <div>Loading...</div>;
   if (!estimateToEdit) return <div>Estimate not found</div>;
+  
   return (
     <div className="flex-1 p-0 m-0 md:p-8 overflow-y-auto">
-      <WelcomeSection name="Edit-Estimate" />
+      {/* Header with Status Dropdown */}
+      <div className="flex-col justify-between items-center mb-6">
+        <WelcomeSection name="Edit-Estimate" />
+        
+        
+      </div>
 
       <div className="max-w-7xl mx-auto p-3 md:p-6 space-y-6">
+        {/* Status Dropdown in Top Right */}
+        <div className="bg-white rounded-2xl p-4 shadow-lg border w-fit border-purple-100">
+          <div className="flex items-center gap-3 ">
+            <span className="text-sm font-semibold text-gray-700">Status:</span>
+            <select
+              value={formData.status}
+              onChange={(e) => handleInputChange("status", e.target.value)}
+              className="p-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium"
+            >
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <div className="ml-2">
+              {getStatusBadge(formData.status)}
+            </div>
+          </div>
+        </div>
         {/* Client Information Card */}
         <div className="bg-white rounded-3xl p-6 shadow-lg border border-purple-100">
           <div className="flex items-center gap-3 mb-6">
@@ -369,7 +426,7 @@ const EditEstimateMainn = () => {
                 />
                 <input
                   type="date"
-                  vvalue={formData.endDate ? formData.endDate.slice(0, 10) : ""}
+                  value={formData.endDate ? formData.endDate.slice(0, 10) : ""}
                   onChange={(e) => handleInputChange("endDate", e.target.value)}
                   className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
@@ -634,10 +691,11 @@ const EditEstimateMainn = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <button
             onClick={handleSubmit}
-            className="flex-1 bg-gradient-to-r hover:from-pink-600 hover:to-purple-600 hover:scale-105  text-white py-4 px-6 rounded-2xl font-bold hover:bg-gradient-to-r from-purple-600  hover: from-pink-600 to-pink-600  transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+            disabled={isLoading}
+            className="flex-1 bg-gradient-to-r hover:from-pink-600 hover:to-purple-600 hover:scale-105  text-white py-4 px-6 rounded-2xl font-bold hover:bg-gradient-to-r from-purple-600  hover: from-pink-600 to-pink-600  transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save size={20} />
-            Update Estimate
+            {isLoading ? "Updating..." : "Update Estimate"}
           </button>
           <button className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 text-white py-4 px-6 rounded-2xl font-bold hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3">
             <Send size={20} />

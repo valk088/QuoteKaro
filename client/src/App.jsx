@@ -17,6 +17,10 @@ import PrivacyPolicyPage from "./Pages/PrivacyPolicyPage";
 import TermsConditionsPage from "./Pages/TermsConditionsPage";
 import RefundPolicyPage from "./Pages/RefundPolicyPage";
 import AboutUsPage from "./Pages/AboutUsPage";
+import LandingPage from "./Pages/LandingPage";
+import PricingLandingPage from "./Pages/PricingLandingPage";
+import ForgotPassword from "./Components/ForgotPassword";
+import ResetPassword from "./Components/ResetPassword";
 
 function App() {
   useEffect(() => {
@@ -28,7 +32,7 @@ function App() {
       <Toaster position="top-center" />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Login />}></Route>
+          <Route path="/" element={<LandingPage />}></Route>
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<ProfilePage />} />
@@ -46,6 +50,11 @@ function App() {
           <Route path="/terms-conditions" element={<TermsConditionsPage />} />
           <Route path="/return-refund-policy" element={<RefundPolicyPage />}/>
           <Route path="/about-us" element={<AboutUsPage />} />
+          <Route path="/pricing" element={<PricingLandingPage />} />
+
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+          
         </Routes>
       </BrowserRouter>
       

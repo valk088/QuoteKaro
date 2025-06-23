@@ -4,7 +4,7 @@ import {
   Search,
   Plus,
   Eye,
-  Edit2,
+  SquarePen,
   Send,
   Download,
   Trash2,
@@ -16,81 +16,101 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useEstimates } from "../context/EstimateContext";
 import { Link } from "react-router-dom";
-function MyEstimatesMainn() {
-  const { estimates, loading ,deleteEstimate} = useEstimates();
 
-  
+function MyEstimatesMainn() {
+  const { estimates, loading, deleteEstimate } = useEstimates();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   if (loading || !estimates) return null;
 
   
-  const statusConfig = {
-    sent: {
-      icon: Check,
-      color: "text-emerald-500",
-      bg: "bg-emerald-50",
-      label: "Sent",
-    },
-    draft: {
-      icon: Edit2,
-      color: "text-blue-500",
-      bg: "bg-blue-50",
-      label: "Draft",
-    },
-    pending: {
-      icon: Clock,
-      color: "text-amber-500",
-      bg: "bg-amber-50",
-      label: "Pending",
-    },
-    rejected: {
-      icon: X,
-      color: "text-red-500",
-      bg: "bg-red-50",
-      label: "Rejected",
-    },
-  };
-
-  
-
   const EstimateCard = ({ estimate }) => {
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
 
     const actions = [
-    {
-      label: "Edit",
-      icon: Edit2,
-      color: "yellow",
-      onClick: () => navigate(`/edit-estimate/${estimate._id}`)
-    },
-    {
-      label: "Send",
-      icon: Send,
-      color: "green",
-      onClick: () => console.log("Send"),
-    },
-    {
-      label: "PDF",
-      icon: Download,
-      color: "orange",
-      onClick: () => console.log("Download"),
-    },
-    {
-      label: "Delete",
-      icon: Trash2,
-      color: "red",
-      onClick: () => {if (confirm("Are you sure you want to delete this estimate?"))  deleteEstimate(estimate._id);
-              }
-    },
-    {
-      label: "View",
-      icon: Eye,
-      color: "blue",
-      // onClick: () => navigate(`/preview/${estimate._id}`)
-    },
-  ];
+      {
+        label: "Edit",
+        icon: SquarePen,
+        color: "yellow",
+        onClick: () => navigate(`/edit-estimate/${estimate._id}`),
+      },
+      {
+        label: "Send",
+        icon: Send,
+        color: "green",
+        onClick: () => console.log("Send"),
+      },
+      {
+        label: "PDF",
+        icon: Download,
+        color: "orange",
+        onClick: () => console.log("Download"),
+      },
+      {
+        label: "Delete",
+        icon: Trash2,
+        color: "red",
+        onClick: () => {
+          if (confirm("Are you sure you want to delete this estimate?"))
+            deleteEstimate(estimate._id);
+        },
+      },
+      {
+        label: "View",
+        icon: Eye,
+
+        color: "blue",
+        onClick: () => navigate(`/preview/${estimate._id}`), // Added onClick for View
+      },
+    ];
+
+    const statusConfig = {
+      rejected: {
+        color: "text-red-600",
+        bg: "bg-red-100",
+        label: "Rejected",
+      },
+      approved: {
+        color: "text-green-600",
+        bg: "bg-green-100",
+        label: "Approved",
+      },
+      sent: {
+        icon: Check,
+        color: "pink-500",
+        bg: "bg-emerald-50",
+        label: "Sent",
+      },
+      draft: {
+        icon: SquarePen,
+        color: "text-blue-500",
+        bg: "bg-blue-50",
+        label: "Draft",
+      },
+      pending: {
+        icon: Clock,
+        color: "text-amber-500",
+        bg: "bg-amber-50",
+        label: "Pending",
+      },
+    };
+
+    const StatusBadgee = ({ status }) => {
+      const config = statusConfig[status];
+
+      if (!config) return null; // optionally handle unknown statuses
+
+      return (
+        <div
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.color} ${config.bg}`}
+        >
+          {config.label}
+          {/* <Icon size={12} /> */}
+        </div>
+      );
+    };
+
     return (
       <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-md border border-gray-200 hover:shadow-lg transition-all duration-200 space-y-4">
         {/* Header */}
@@ -102,7 +122,7 @@ function MyEstimatesMainn() {
             <p className="text-sm font-semibold md:py-2 text-gray-700">
               {estimate.functionName}
             </p>
-            <div className="text-sm  font-semibold text-gray-700">
+            <div className="text-sm font-semibold text-gray-700">
               {new Date(estimate.startDate).toLocaleDateString("en-GB", {
                 day: "2-digit",
                 month: "short",
@@ -111,27 +131,31 @@ function MyEstimatesMainn() {
             </div>
           </div>
 
-          <div className="sm:m-0 flex-col m-3   ">
-            <div className="text-xl mb-1 font-bold  bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <div className="sm:m-0 flex-col m-3">
+            <div className="text-xl mb-1 font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               ₹{estimate.subtotal}
             </div>
-            <StatusBadge status={estimate.status} />
+            <StatusBadgee status={estimate.status} />
           </div>
         </div>
 
         {/* Action Buttons - Responsive */}
         <div className="flex flex-wrap md:flex justify-start sm:justify-between gap-2 sm:gap-3">
-          {actions.map(({ label, icon: Icon, color, onClick }) => (
-            <button
-              key={label}
-              onClick={onClick}
-              className={`flex-1 sm:flex-auto flex items-center justify-center gap-2 py-2 px-3 bg-${color}-50 text-${color}-600 rounded-xl font-medium hover:bg-${color}-100 transition-colors`}
-              title={label}
-            >
-              <Icon size={16} />
-              {label}
-            </button>
-          ))}
+          {actions.map(
+            (
+              { label, icon: ActionIcon, color, onClick } // Changed icon to ActionIcon
+            ) => (
+              <button
+                key={label}
+                onClick={onClick}
+                className={`flex-1 sm:flex-auto flex items-center justify-center gap-2 py-2 px-3 bg-${color}-50 text-${color}-600 rounded-xl font-medium hover:bg-${color}-100 transition-colors`}
+                title={label}
+              >
+                <ActionIcon size={16} /> {/* Used ActionIcon */}
+                {label}
+              </button>
+            )
+          )}
         </div>
       </div>
     );
@@ -151,7 +175,10 @@ function MyEstimatesMainn() {
           : "Create your first estimate to get started"}
       </p>
       {!searchTerm && activeFilter === "all" && (
-        <Link to="/new-estimate" t className="bg-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-purple-700 transition-colors">
+        <Link
+          to="/new-estimate"
+          className="bg-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-purple-700 transition-colors"
+        >
           Create Estimate
         </Link>
       )}
@@ -166,18 +193,6 @@ function MyEstimatesMainn() {
       activeFilter === "all" || estimate.status === activeFilter;
     return matchesSearch && matchesFilter;
   });
-  const StatusBadge = ({ status }) => {
-    const config = statusConfig[status];
-    const Icon = config.icon;
-    return (
-      <div
-        className={`inline-flex  items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.color} ${config.bg}`}
-      >
-        <Icon size={12} />
-        {config.label}
-      </div>
-    );
-  };
 
   return (
     <div className="flex-1 p-4 md:p-8 overflow-y-auto">
@@ -190,7 +205,10 @@ function MyEstimatesMainn() {
           <div className="px-4 py-6">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-gray-900">My Estimates</h1>
-              <Link to="/new-estimate" className="bg-purple-600 text-white p-3 rounded-xl hover:bg-purple-700 transition-colors shadow-lg">
+              <Link
+                to="/new-estimate"
+                className="bg-purple-600 text-white p-3 rounded-xl hover:bg-purple-700 transition-colors shadow-lg"
+              >
                 <Plus size={20} />
               </Link>
             </div>
@@ -271,7 +289,10 @@ function MyEstimatesMainn() {
         </div>
 
         {/* Floating Action Button for Mobile */}
-        <Link to="/new-estimate" className="fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-2xl hover:bg-purple-700 transition-all hover:scale-110 md:hidden">
+        <Link
+          to="/new-estimate"
+          className="fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-2xl hover:bg-purple-700 transition-all hover:scale-110 md:hidden"
+        >
           <Plus size={24} />
         </Link>
       </div>

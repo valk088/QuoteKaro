@@ -18,7 +18,9 @@ import { RiLogoutBoxLine } from "react-icons/ri";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signOut , onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebase";
+import { useUser } from '../context/UserContext';
 const Sidebar = () => {
+  const { logout } = useUser();
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(true);
@@ -126,14 +128,10 @@ const Sidebar = () => {
     try {
       // Sign out from Firebase
       await signOut(auth);
-
-      // Clear local storage data
+      logout();
+      
       localStorage.removeItem("firebaseId");
-      // You can also clear other related data if needed
-      // localStorage.removeItem('userEmail');
-      // localStorage.removeItem('studioName');
-
-      // Redirect to login page
+      
       navigate("/login");
     } catch (error) {
       console.error("Error during logout:", error);
@@ -164,6 +162,7 @@ const Sidebar = () => {
   };
 
   const userInfo =  getUserInfo();
+  // console.log(userInfo)
 
   const isSettingsActive = window.location.pathname.startsWith("/settings");
   const isSubItemActive = (path) => window.location.pathname === path;
@@ -182,10 +181,7 @@ const Sidebar = () => {
     }
   };
 
-  const isActive = (path) => {
-    // Mock location check - replace with your router logic
-    return location.pathname === path;
-  };
+ 
 
   return (
     <div className="flex md:flex-row flex-col md:h-screen">

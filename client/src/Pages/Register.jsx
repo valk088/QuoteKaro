@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { auth } from "../../firebase";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, Camera, User } from 'lucide-react';
+import { Mail, Lock, Eye, FileSignature,EyeOff, ArrowRight, Sparkles, Camera, User } from 'lucide-react';
 
 import {
   createUserWithEmailAndPassword,
@@ -112,7 +112,7 @@ const Register = () => {
       {/* Logo/Brand Section */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl shadow-lg mb-4 transform rotate-12 hover:rotate-0 transition-transform duration-300">
-          <Camera className="w-8 h-8 text-white" />
+          <FileSignature className="w-8 h-8 text-white" />
         </div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
           QuoteKaro

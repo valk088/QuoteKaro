@@ -2,11 +2,8 @@
 import BellIcon from "../Utils/BellIcon.jsx";
 import CreditsBtn from "../Utils/CreditsBtn.jsx";
 import { auth } from "../../firebase";
-import { useNavigate , Link } from "react-router-dom";
-import {
-
-  Camera,
-} from "lucide-react";
+import { useNavigate , Link  } from "react-router-dom";
+import { FileSignature} from "lucide-react";
 function Navbar() {
   const navigate = useNavigate();
 
@@ -40,7 +37,7 @@ function Navbar() {
           {/* LOGO */}
           <div className="flex justify-center gap-2">
           <div className="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg shadow-lg mb-4 ">
-            <Camera className="w-4 h-4 text-white" />
+            <FileSignature className="w-4 h-4 text-white" />
           </div>
           <a href="/dashboard">
             <h1 className="text-lg pt-1 font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">QuoteKaro</h1>

@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+
 import BellIcon from "../Utils/BellIcon.jsx";
 import CreditsBtn from "../Utils/CreditsBtn.jsx";
 import { auth } from "../../firebase";
 import { useNavigate , Link } from "react-router-dom";
+import {
 
+  Camera,
+} from "lucide-react";
 function Navbar() {
   const navigate = useNavigate();
-  const [showUserMenu, setShowUserMenu] = useState(false);
+
 
   const getUserInfo = () => {
     const user = auth.currentUser;
@@ -35,10 +38,14 @@ function Navbar() {
       <div className="max-w-8xl mx-auto px-4 py-1">
         <div className="flex justify-between items-center h-16">
           {/* LOGO */}
+          <div className="flex justify-center gap-2">
+          <div className="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg shadow-lg mb-4 ">
+            <Camera className="w-4 h-4 text-white" />
+          </div>
           <a href="/dashboard">
-            <h1 className="text-lg font-bold text-purple-600">QuoteKaro</h1>
+            <h1 className="text-lg pt-1 font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">QuoteKaro</h1>
           </a>
-
+          </div>
           {/* Right Icons */}
           <div className="flex items-center space-x-3">
             {/* Bell */}

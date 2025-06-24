@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React  from 'react'
 import {Bell} from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { Link } from 'react-router-dom';

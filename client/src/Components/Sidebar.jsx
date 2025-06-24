@@ -20,7 +20,8 @@ import { signOut , onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebase";
 import { useUser } from '../context/UserContext';
 const Sidebar = () => {
-  const { logout } = useUser();
+  const { userData,logout } = useUser();
+  
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(true);
@@ -101,12 +102,7 @@ const Sidebar = () => {
       label: "Security",
       path: "/settings/security",
     },
-    {
-      id: "account-details",
-      icon: CreditCard,
-      label: "Account Details",
-      path: "/settings/account-details",
-    },
+    
   ];
 
   // Close dropdown when clicking outside
@@ -146,6 +142,11 @@ const Sidebar = () => {
 
     return () => unsubscribe();
   }, []);
+
+
+   if(!userData  ) return null;
+
+   
   const getUserInfo = () => {
     if (firebaseUser) {
       return {
@@ -163,6 +164,9 @@ const Sidebar = () => {
 
   const userInfo =  getUserInfo();
   // console.log(userInfo)
+
+ 
+  
 
   const isSettingsActive = window.location.pathname.startsWith("/settings");
   const isSubItemActive = (path) => window.location.pathname === path;
@@ -331,9 +335,9 @@ const Sidebar = () => {
             <div className="mb-3 p-3 bg-gray-50 rounded-xl">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  {userInfo.avatar ? (
+                  {userData.logoUrl ? (
                     <img
-                      src={userInfo.avatar}
+                      src={userData.logoUrl}
                       alt="Profile"
                       className="w-full h-full rounded-full object-cover"
                     />

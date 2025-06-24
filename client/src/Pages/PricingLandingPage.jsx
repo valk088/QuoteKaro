@@ -199,7 +199,7 @@ const PricingLandingPage = () => {
               </div>
 
               <button
-                onClick={() => toast.success("Redirecting to signup/login for purchase...")}
+                onClick={() => navigate("/login")}
                 className="w-full py-4 rounded-2xl font-semibold text-lg transition-all flex items-center justify-center gap-2 group bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-xl transform hover:-translate-y-1"
               >
                 Get Started
@@ -259,7 +259,7 @@ const PricingLandingPage = () => {
               </div>
 
               <button
-                onClick={() => toast.success("Redirecting to signup/login for purchase...")}
+                onClick={() => navigate("/login")}
                 className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-semibold hover:shadow-lg transition-all transform hover:-translate-y-1"
               >
                 Buy Now

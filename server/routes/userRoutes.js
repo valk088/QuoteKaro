@@ -147,4 +147,45 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+router.put('/:userId/preferences', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { selectedEstimateTheme } = req.body; // Expecting this field from frontend
+
+    // Validate that selectedEstimateTheme is provided
+    if (!selectedEstimateTheme) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'selectedEstimateTheme is required.' 
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: { selectedEstimateTheme: selectedEstimateTheme } }, // Fixed syntax: proper object format
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found.' 
+      });
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'User preferences updated successfully.', 
+      user: updatedUser 
+    });
+
+  } catch (error) {
+    console.error('Error updating user preferences:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server Error', 
+      error: error.message 
+    });
+  }
+});
 module.exports = router;

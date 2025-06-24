@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
     notes: { type: String },
 
     // SaaS Related
-    plan: { type: String, default: "Stater" },
+    plan: { type: String, default: "Starter" },
     total_estimates: { type: Number, default: 0 },
     total_clients: { type: Number, default: 0 },
 
@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema(
     totalturnover: { type: Number, default: 0 },
 
     isSuspended: { type: Boolean, default: false },
-    lastLogin: {type: Date,default: Date.now,},
+    lastLogin: { type: Date, default: Date.now },
     joinedAt: { type: Date, default: Date.now },
 
     planExpiresAt: {
@@ -52,6 +52,13 @@ const userSchema = new mongoose.Schema(
       enum: ["monthly", "yearly"],
       default: "monthly",
     },
+    services: [
+      {
+        servideid:{ type: String},
+        name: { type: String, required: true },
+        price: { type: Number, required: true },
+      },
+    ],
 
     selectedEstimateTheme: { type: String, default: "simple" },
   },

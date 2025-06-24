@@ -52,20 +52,15 @@ const EditEstimateMainn = () => {
     netTotal: 0,
   });
 
-  const serviceOptions = [
-    "Wedding Photography",
-    "Pre-Wedding Shoot",
-    "Engagement Photography",
-    "Birthday Party Photography",
-    "Corporate Event Photography",
-    "Product Photography",
-    "Portrait Photography",
-    "Event Videography",
-    "Drone Photography",
-    "Photo Editing",
-    "Album Design",
-    "Video Editing",
-  ];
+  // Use user's custom services for options
+    const userServicesOptions = useMemo(() => {
+      const services = userData?.services?.map((s) => ({
+        name: s.name,
+        price: s.price,
+      })) || [];
+      return services.sort((a, b) => a.name.localeCompare(b.name));
+    }, [userData]);
+  
 
   const statusOptions = [
     { value: "draft", label: "Draft", icon: AlertCircle, color: "text-gray-600" },
@@ -126,15 +121,38 @@ const EditEstimateMainn = () => {
     setServices((prev) =>
       prev.map((service) => {
         if (service.id === id) {
-          const updated = { ...service, [field]: value };
-          if (field === "quantity" || field === "pricePerUnit") {
-            // Ensure numeric values
-            const quantity = Number(updated.quantity) || 0;
-            const pricePerUnit = Number(updated.pricePerUnit) || 0;
-            updated.quantity = quantity;
-            updated.pricePerUnit = pricePerUnit;
-            updated.total = quantity * pricePerUnit;
+          const updated = { ...service };
+
+          if (field === "serviceName") {
+            if (value === "custom_input") {
+              // User selected 'Write new service'
+              updated.serviceName = ""; // Clear current name
+              updated.isCustomInput = true;
+              updated.pricePerUnit = 0; // Reset price for new custom service
+            } else {
+              // User selected a predefined service or typed in a custom name
+              const selectedOption = userServicesOptions.find(
+                (option) => option.name === value
+              );
+
+              updated.serviceName = value; // Set the service name to the selected/typed value
+              updated.isCustomInput = false; // It's no longer a 'custom_input' state
+
+              if (selectedOption) {
+                updated.pricePerUnit = selectedOption.price;
+              } else if (value === "") {
+                // If user selected empty option
+                updated.pricePerUnit = 0;
+              }
+              // If value is a new custom name typed directly into the input, pricePerUnit remains as is or 0
+            }
+          } else {
+            // For quantity or pricePerUnit changes
+            updated[field] = value;
           }
+
+          // Recalculate total for quantity, pricePerUnit, or when serviceName causes price change
+          updated.total = updated.quantity * updated.pricePerUnit;
           return updated;
         }
         return service;
@@ -143,8 +161,7 @@ const EditEstimateMainn = () => {
   };
 
   const addService = () => {
-    const newId =
-      services.length > 0 ? Math.max(...services.map((s) => s.id)) + 1 : 1;
+    const newId = services.length > 0 ? Math.max(...services.map((s) => s.id)) + 1 : 1;
     setServices((prev) => [
       ...prev,
       {
@@ -153,6 +170,7 @@ const EditEstimateMainn = () => {
         quantity: 1,
         pricePerUnit: 0,
         total: 0,
+        isCustomInput: false, // Initialize as not a custom input
       },
     ]);
   };
@@ -514,12 +532,15 @@ const EditEstimateMainn = () => {
                       className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     >
                       <option value="">Select a service</option>
-                      {serviceOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
+                          <option value="custom_input" className="font-bold text-purple-700 bg-purple-50">
+                            --- Write new service ---
+                          </option>
+                          {userServicesOptions.map((option) => (
+                            <option key={option.name} value={option.name}>
+                              {option.name} {option.price > 0 ? `(₹${option.price.toLocaleString()})` : ''}
+                            </option>
+                          ))}
+                        </select>
                   </div>
 
                   <div>

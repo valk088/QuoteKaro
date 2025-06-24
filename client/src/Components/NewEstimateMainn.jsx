@@ -9,13 +9,14 @@ import {
   Save,
   Send,
 } from "lucide-react";
-import { useEffect, useState, React } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import WelcomeSection from "./WelcomeSection";
 import axios from "axios";
 import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useEstimates } from "../context/EstimateContext";
+
 const NewEstimateMainn = () => {
   const { refreshEstimates } = useEstimates();
   const { userData, loading, refresh } = useUser();
@@ -31,7 +32,8 @@ const NewEstimateMainn = () => {
     endDate: "",
     notes: "",
   });
-  // Then after userData is available, populate notes:
+
+  // Populate notes from userData when available
   useEffect(() => {
     if (userData && userData.notes) {
       setFormData((prev) => ({
@@ -40,8 +42,9 @@ const NewEstimateMainn = () => {
       }));
     }
   }, [userData]);
+
   const [services, setServices] = useState([
-    { id: 1, serviceName: "", quantity: 1, pricePerUnit: 0, total: 0 },
+    { id: 1, serviceName: "", quantity: 1, pricePerUnit: 0, total: 0, isCustomInput: false },
   ]);
 
   const [totals, setTotals] = useState({
@@ -50,6 +53,15 @@ const NewEstimateMainn = () => {
     discountType: "percentage", // 'percentage' or 'amount'
     netTotal: 0,
   });
+
+  // Use user's custom services for options
+  const userServicesOptions = useMemo(() => {
+    const services = userData?.services?.map((s) => ({
+      name: s.name,
+      price: s.price,
+    })) || [];
+    return services.sort((a, b) => a.name.localeCompare(b.name));
+  }, [userData]);
 
   const calculateTotals = () => {
     const subtotal = services.reduce((sum, service) => sum + service.total, 0);
@@ -70,26 +82,13 @@ const NewEstimateMainn = () => {
     }));
   };
 
+  // Recalculate totals whenever services, discount, or discountType change
   useEffect(() => {
     calculateTotals();
   }, [services, totals.discount, totals.discountType]);
 
+  // Render null or loading indicator while user data is not available
   if (loading || !userData) return null;
-
-  const serviceOptions = [
-    "Wedding Photography",
-    "Pre-Wedding Shoot",
-    "Engagement Photography",
-    "Birthday Party Photography",
-    "Corporate Event Photography",
-    "Product Photography",
-    "Portrait Photography",
-    "Event Videography",
-    "Drone Photography",
-    "Photo Editing",
-    "Album Design",
-    "Video Editing",
-  ];
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -102,10 +101,38 @@ const NewEstimateMainn = () => {
     setServices((prev) =>
       prev.map((service) => {
         if (service.id === id) {
-          const updated = { ...service, [field]: value };
-          if (field === "quantity" || field === "pricePerUnit") {
-            updated.total = updated.quantity * updated.pricePerUnit;
+          const updated = { ...service };
+
+          if (field === "serviceName") {
+            if (value === "custom_input") {
+              // User selected 'Write new service'
+              updated.serviceName = ""; // Clear current name
+              updated.isCustomInput = true;
+              updated.pricePerUnit = 0; // Reset price for new custom service
+            } else {
+              // User selected a predefined service or typed in a custom name
+              const selectedOption = userServicesOptions.find(
+                (option) => option.name === value
+              );
+
+              updated.serviceName = value; // Set the service name to the selected/typed value
+              updated.isCustomInput = false; // It's no longer a 'custom_input' state
+
+              if (selectedOption) {
+                updated.pricePerUnit = selectedOption.price;
+              } else if (value === "") {
+                // If user selected empty option
+                updated.pricePerUnit = 0;
+              }
+              // If value is a new custom name typed directly into the input, pricePerUnit remains as is or 0
+            }
+          } else {
+            // For quantity or pricePerUnit changes
+            updated[field] = value;
           }
+
+          // Recalculate total for quantity, pricePerUnit, or when serviceName causes price change
+          updated.total = updated.quantity * updated.pricePerUnit;
           return updated;
         }
         return service;
@@ -114,7 +141,7 @@ const NewEstimateMainn = () => {
   };
 
   const addService = () => {
-    const newId = Math.max(...services.map((s) => s.id)) + 1;
+    const newId = services.length > 0 ? Math.max(...services.map((s) => s.id)) + 1 : 1;
     setServices((prev) => [
       ...prev,
       {
@@ -123,14 +150,14 @@ const NewEstimateMainn = () => {
         quantity: 1,
         pricePerUnit: 0,
         total: 0,
+        isCustomInput: false, // Initialize as not a custom input
       },
     ]);
   };
 
-  const removeService = (id) => {
+  const removeService = (idToRemove) => {
     if (services.length > 1) {
-      setServices((prev) => prev.filter((service) => service.id !== id));
-      calculateTotals();
+      setServices((prev) => prev.filter((service) => service.id !== idToRemove));
     }
   };
 
@@ -146,23 +173,22 @@ const NewEstimateMainn = () => {
       const isExpired = new Date(userData.planExpiresAt) < new Date();
       if (isExpired) {
         toast.error("🚫 Your plan has expired. Please upgrade to continue.");
-
-        setTimeout(() => {
-          navigate("/plan-credits");
-        }, 2000);
-      }
-
-      const firebaseUID = localStorage.getItem("firebaseUID");
-
-      // check required credits at least 2
-      if (userData.left_credits <= 2) {
-        toast.error(" You're out of credits. Please upgrade to continue.");
         setTimeout(() => {
           navigate("/plan-credits");
         }, 2000);
         return;
       }
-      // 🚨 Required field validation
+
+      const firebaseUID = localStorage.getItem("firebaseUID");
+
+      if (userData.left_credits <= 2) {
+        toast.error("You're out of credits. Please upgrade to continue.");
+        setTimeout(() => {
+          navigate("/plan-credits");
+        }, 2000);
+        return;
+      }
+
       const requiredFields = [
         formData.clientName,
         formData.functionName,
@@ -174,10 +200,27 @@ const NewEstimateMainn = () => {
         toast.error("Please fill all required fields marked with *");
         return;
       }
+
+      const isValidServices = services.every(s =>
+        s.serviceName.trim() !== "" &&
+        s.quantity > 0 &&
+        s.pricePerUnit >= 0
+      );
+
+      if (!isValidServices) {
+        toast.error("Please ensure all services have a name, quantity (min 1), and valid price (min ₹0).");
+        return;
+      }
+
       const payload = {
         firebaseUID,
         ...formData,
-        services: services,
+        services: services.map(s => ({
+          serviceName: s.serviceName,
+          quantity: s.quantity,
+          pricePerUnit: s.pricePerUnit,
+          total: s.total,
+        })),
         subtotal: totals.subtotal,
         discount: totals.discount,
         discountType: totals.discountType,
@@ -202,6 +245,7 @@ const NewEstimateMainn = () => {
       }
     } catch (err) {
       console.error("❌ Failed to create estimate", err);
+      toast.error(err.response?.data?.message || "Failed to save estimate. Please try again.");
     }
   };
 
@@ -328,6 +372,7 @@ const NewEstimateMainn = () => {
                   handleInputChange("phoneNumber", e.target.value)
                 }
                 placeholder="e.g. +91 784xxxxxxx"
+                maxLength="13"
                 className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
               />
             </div>
@@ -353,95 +398,133 @@ const NewEstimateMainn = () => {
           </div>
 
           <div className="space-y-4">
-            {services.map((service, index) => (
-              <div
-                key={service.id}
-                className="bg-gradient-to-r from-gray-50 to-purple-50/30 p-4 rounded-2xl border border-gray-100"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Service Name
-                    </label>
-                    <select
-                      value={service.serviceName}
-                      onChange={(e) =>
-                        handleServiceChange(
-                          service.id,
-                          "serviceName",
-                          e.target.value
-                        )
-                      }
-                      className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    >
-                      <option value="">Select a service</option>
-                      {serviceOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Quantity
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={service.quantity}
-                      onChange={(e) =>
-                        handleServiceChange(
-                          service.id,
-                          "quantity",
-                          parseInt(e.target.value) || 1
-                        )
-                      }
-                      className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Price per Unit
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={service.pricePerUnit}
-                      onChange={(e) =>
-                        handleServiceChange(
-                          service.id,
-                          "pricePerUnit",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
-                      className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
+            {userServicesOptions.length === 0 && services.length === 1 && services[0].serviceName === "" && !services[0].isCustomInput ? (
+              <div className="text-center p-8 bg-gray-50 rounded-2xl border border-gray-100">
+                <p className="text-lg font-medium text-gray-700 mb-4">
+                  Looks like you haven't added any custom services yet!
+                </p>
+                <p className="text-gray-600 mb-6">
+                  Define your services and their default prices, or write a new one directly below.
+                </p>
+                <button
+                  onClick={() => navigate("/settings/preferences")}
+                  className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors shadow-md"
+                >
+                  Go to Preferences to Create Services
+                </button>
+              </div>
+            ) : (
+              services.map((service) => (
+                <div
+                  key={service.id}
+                  className="bg-gradient-to-r from-gray-50 to-purple-50/30 p-4 rounded-2xl border border-gray-100"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                    <div className="md:col-span-2">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Total
+                        Service Name
                       </label>
-                      <div className="w-full p-3 bg-purple-50 border border-purple-200 rounded-xl font-bold text-purple-600">
-                        ₹{service.total.toLocaleString()}
-                      </div>
+                      {service.isCustomInput ? (
+                        <input
+                          type="text"
+                          value={service.serviceName}
+                          onChange={(e) =>
+                            handleServiceChange(
+                              service.id,
+                              "serviceName",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Enter new service name"
+                          className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                          autoFocus // Automatically focus when it appears
+                        />
+                      ) : (
+                        <select
+                          value={service.serviceName}
+                          onChange={(e) =>
+                            handleServiceChange(
+                              service.id,
+                              "serviceName",
+                              e.target.value
+                            )
+                          }
+                          className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        >
+                          <option value="">Select a service</option>
+                          <option value="custom_input" className="font-bold text-purple-700 bg-purple-50">
+                            --- Write new service ---
+                          </option>
+                          {userServicesOptions.map((option) => (
+                            <option key={option.name} value={option.name}>
+                              {option.name} {option.price > 0 ? `(₹${option.price.toLocaleString()})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
-                    {services.length > 1 && (
-                      <button
-                        onClick={() => removeService(service.id)}
-                        className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    )}
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Quantity
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={service.quantity}
+                        onChange={(e) =>
+                          handleServiceChange(
+                            service.id,
+                            "quantity",
+                            parseInt(e.target.value) || 1
+                          )
+                        }
+                        className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Price per Unit (₹)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={service.pricePerUnit}
+                        onChange={(e) =>
+                          handleServiceChange(
+                            service.id,
+                            "pricePerUnit",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                        className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Total
+                        </label>
+                        <div className="w-full p-3 bg-purple-50 border border-purple-200 rounded-xl font-bold text-purple-600">
+                          ₹{service.total.toLocaleString()}
+                        </div>
+                      </div>
+                      {services.length > 1 && (
+                        <button
+                          onClick={() => removeService(service.id)}
+                          className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -521,14 +604,14 @@ const NewEstimateMainn = () => {
               <span className="text-xl font-bold text-purple-900">
                 Net Total
               </span>
-              <span className="text-2xl  bg-gradient-to-r font-bold from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-2xl bg-gradient-to-r font-bold from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 ₹{totals.netTotal.toLocaleString()}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Notes Section */}
+        {/* Additional Notes Section */}
         <div className="bg-white rounded-3xl p-6 shadow-lg border border-purple-100">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
@@ -549,10 +632,10 @@ const NewEstimateMainn = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 text-white">
           <button
             onClick={handleSubmit}
-            className="flex-1 bg-gradient-to-r hover:from-pink-600 hover:to-purple-600 hover:scale-105  text-white py-4 px-6 rounded-2xl font-bold hover:bg-gradient-to-r from-purple-600  hover: from-pink-600 to-pink-600  transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+            className="flex-1 bg-gradient-to-r hover:from-pink-600 hover:to-purple-600 hover:scale-105   py-4 px-6 rounded-2xl font-bold hover:bg-gradient-to-r from-purple-600  hover: from-pink-600 to-pink-600  transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
           >
             <Save size={20} />
             Save as Draft

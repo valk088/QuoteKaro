@@ -10,14 +10,14 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Company Info */}
         <div className="space-y-4">
-          <h3 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500 pb-2 inline-block border-b-2 border-purple-300">QuoteLKaro</h3>
+          <h3 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500 pb-2 inline-block border-b-2 border-purple-300">QuoteKaro</h3>
           <p className="text-sm text-gray-600">
             Your trusted partner for creating professional and accurate estimates.
             Streamline your business with our intuitive platform.
           </p>
           <div className="flex space-x-4">
             {/* Placeholder for social media icons - changed colors to fit theme */}
-            <a href="#" className="text-gray-500 hover:text-purple-600 transition-colors" aria-label="Facebook">
+            <a href="https://www.instagram.com/quotekaro.in/" className="text-gray-500 hover:text-purple-600 transition-colors" aria-label="Facebook">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram-icon lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
               </a>
             {/* <a href="#" className="text-gray-500 hover:text-purple-600 transition-colors" aria-label="Instagram">
@@ -74,7 +74,7 @@ const Footer = () => {
 
       {/* Copyright */}
       <div className="border-t border-gray-300 mt-8 pt-2 text-center text-gray-500 text-sm">
-        &copy; {currentYear} QuoteLKaro. All rights reserved.
+        &copy; {currentYear} QuoteKaro. All rights reserved.
       </div>
     </footer>
   );

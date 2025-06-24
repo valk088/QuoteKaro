@@ -83,6 +83,14 @@ app.use('/api/dashboard', dashboardRoutes);
 const logoUploadRoutes = require('./routes/logoUpload');
 app.use('/api', logoUploadRoutes);
 
+// For fetching estimate templates
+const templateRoutes = require('./routes/templateRoutes'); 
+app.use('/api/templates', templateRoutes);
+
+
+const servicesRouter = require('./routes/services');
+app.use('/api', servicesRouter);
+
 app.listen(process.env.PORT ,  () =>{
     console.log(`server started on port  ${process.env.PORT}`);
     

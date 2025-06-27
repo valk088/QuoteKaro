@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { useNavigate  } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Helmet } from 'react-helmet-async'; // <--- ADD THIS LINE FOR SEO MANAGEMENT
 
 const PricingLandingPage = () => {
   const [billingCycle, setBillingCycle] = useState("monthly");
@@ -16,7 +17,8 @@ const PricingLandingPage = () => {
   const [creditPlans, setCreditPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchPlans = async () => {
       try {
@@ -53,6 +55,26 @@ const PricingLandingPage = () => {
     return 0;
   };
 
+  // Define FAQ data for Schema Markup
+  const faqData = [
+    {
+      question: "What is QuoteKaro's pricing model?",
+      answer: "QuoteKaro offers flexible pricing with both monthly/yearly subscription plans and one-time credit packs, allowing you to choose what best fits your photography business needs."
+    },
+    {
+      question: "Do you offer a free trial or free credits?",
+      answer: "Yes, you can sign up for free to create your first quotes and experience QuoteKaro's features. Explore our plans to see free credit allowances."
+    },
+    {
+      question: "Are there different plans for different types of photographers?",
+      answer: "Our plans are designed to cater to various needs, from freelance photographers to large studios. You can choose a subscription for consistent usage or one-time credit packs for seasonal or occasional needs."
+    },
+    {
+      question: "How do the credits work?",
+      answer: "Credits are used to generate estimates. With subscription plans, you get a fixed number of estimates per month. One-time credit packs allow you to purchase additional estimates as needed, without a recurring commitment."
+    }
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 p-8">
@@ -71,19 +93,116 @@ const PricingLandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white p-4 md:p-8">
-      {/* Hero Section for Landing Page */}
+      {/* Helmet for Pricing Page Specific SEO */}
+      <Helmet>
+        <title>QuoteKaro Pricing | Flexible Plans & Credit Packs for Photographers</title>
+        <meta
+          name="description"
+          content="Find the perfect QuoteKaro pricing plan for your photography business. Choose from flexible monthly/yearly subscriptions or one-time credit packs to generate professional estimates."
+        />
+        <meta
+          name="keywords"
+          content="QuoteKaro pricing, photography estimate software cost, quote generator plans, freelance photographer pricing tool, studio estimate software price, credit system for photographers, subscription plans for photography, India photography app pricing"
+        />
+        {/* Open Graph Tags for Social Sharing - specific to Pricing Page */}
+        <meta property="og:title" content="QuoteKaro Pricing: Flexible Plans for Your Photography Business" />
+        <meta property="og:description" content="Explore QuoteKaro's transparent pricing for photographers and studios. Choose subscription plans or one-time credit packs to get instant, professional estimates." />
+        <meta property="og:image" content="https://quotekaro.in/og-image-pricing.jpg" /> {/* IMPORTANT: Create a specific image for your pricing page and update this URL */}
+        <meta property="og:url" content="https://quotekaro.in/pricing" /> {/* IMPORTANT: Ensure this matches your actual pricing page URL */}
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="en_IN" />
+
+        {/* Twitter Card Tags for Social Sharing - specific to Pricing Page */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="QuoteKaro Pricing Plans: Get Started for Free" />
+        <meta name="twitter:description" content="Discover QuoteKaro's flexible pricing for photographers. Monthly, yearly, or one-time credits – find the perfect fit for your studio or freelance work." />
+        <meta name="twitter:image" content="https://quotekaro.in/twitter-image-pricing.jpg" /> {/* IMPORTANT: Create a specific image for your pricing page and update this URL */}
+        <meta name="twitter:site" content="@yourtwitterhandle" /> {/* OPTIONAL: Your Twitter handle */}
+
+        {/* Schema Markup for FAQPage (JSON-LD) */}
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": ${JSON.stringify(faqData)}
+            }
+          `}
+        </script>
+
+        {/* Schema Markup for Product (assuming QuoteKaro is the main product offered here) */}
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "Product",
+              "name": "QuoteKaro Estimate Software",
+              "description": "QuoteKaro offers flexible plans and credit packs for photographers and studios to generate instant, professional estimates, streamline client proposals, and grow their business.",
+              "url": "https://quotekaro.in/pricing",
+              "brand": {
+                "@type": "Brand",
+                "name": "QuoteKaro"
+              },
+              "offers": [
+                // Dynamically add offers based on your subscriptionPlans and creditPlans
+                ${subscriptionPlans.map(plan => `
+                  {
+                    "@type": "Offer",
+                    "name": "${plan.name} Monthly Plan",
+                    "priceCurrency": "INR",
+                    "price": "${plan.monthlyPrice}",
+                    "url": "https://quotekaro.in/register", // Link to signup
+                    "priceValidUntil": "${new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]}", // Valid for 1 year
+                    "availability": "https://schema.org/InStock",
+                    "itemCondition": "https://schema.org/NewCondition",
+                    "billingDuration": "P1M" // Per month
+                  }
+                `).join(',')},
+                ${subscriptionPlans.filter(plan => plan.yearlyPrice).map(plan => `
+                  {
+                    "@type": "Offer",
+                    "name": "${plan.name} Yearly Plan",
+                    "priceCurrency": "INR",
+                    "price": "${plan.yearlyPrice}",
+                    "url": "https://quotekaro.in/register", // Link to signup
+                    "priceValidUntil": "${new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]}", // Valid for 1 year
+                    "availability": "https://schema.org/InStock",
+                    "itemCondition": "https://schema.org/NewCondition",
+                    "billingDuration": "P1Y" // Per year
+                  }
+                `).join(',')},
+                ${creditPlans.map(plan => `
+                  {
+                    "@type": "Offer",
+                    "name": "${plan.name} Credit Pack",
+                    "priceCurrency": "INR",
+                    "price": "${plan.monthlyPrice}", // Assuming monthlyPrice is the one-time price here
+                    "url": "https://quotekaro.in/login", // Link to login to buy credits
+                    "priceValidUntil": "${new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]}", // Valid for 1 year
+                    "availability": "https://schema.org/InStock",
+                    "itemCondition": "https://schema.org/NewCondition"
+                  }
+                `).join(',')}
+              ],
+              
+              
+            }
+          `}
+        </script>
+      </Helmet>
+
+      {/* Hero Section for Pricing Page */}
       <div className="text-center mb-12 max-w-4xl mx-auto pt-12">
+        {/* H1 Tag for Pricing Page */}
         <h1 className="text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
-          Flexible Pricing for Every Business
+          Flexible Pricing for Every Photographer
         </h1>
         <p className="text-xl text-gray-600 mb-8">
-          Choose a plan that fits your needs, from powerful monthly subscriptions to one-time credit boosts.
+          Choose a plan that fits your business needs, from powerful monthly subscriptions to convenient one-time credit boosts.
         </p>
         <button
           onClick={() => {
-            // This button could link to a signup/login page
-            // Or scroll down to the plans section
-            document.getElementById('plans-section').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('subscription-plans').scrollIntoView({ behavior: 'smooth' });
           }}
           className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:-translate-y-1"
         >
@@ -93,13 +212,14 @@ const PricingLandingPage = () => {
       </div>
 
       {/* Subscription Plans Section */}
-      <div id="plans-section" className="mb-16">
+      <div id="subscription-plans" className="mb-16">
         <div className="text-center mb-12">
+          {/* H2 Tag for Subscription Plans */}
           <h2 className="text-4xl font-bold text-gray-800 mb-4">
-            Subscription Plans
+            Subscription Plans for Consistent Growth
           </h2>
           <p className="text-lg text-gray-600">
-            Unlock advanced features and consistent credit access.
+            Unlock advanced features and consistent credit access to power your photography business.
           </p>
         </div>
 
@@ -211,13 +331,14 @@ const PricingLandingPage = () => {
       </div>
 
       {/* Credit Plans Section */}
-      <div className="mb-16">
+      <div id="credit-plans" className="mb-16"> {/* Added an ID for scrolling/linking if needed */}
         <div className="text-center mb-12">
+          {/* H2 Tag for Credit Plans */}
           <h2 className="text-4xl font-bold text-gray-800 mb-4">
-            One-Time Credit Packs
+            One-Time Credit Packs for Flexibility
           </h2>
           <p className="text-lg text-gray-600">
-            Need a few extra estimates? Purchase credits as you go.
+            Need a few extra estimates or prefer a pay-as-you-go model? Purchase credits as you go.
           </p>
         </div>
 
@@ -255,7 +376,7 @@ const PricingLandingPage = () => {
               </div>
 
               <div className="text-3xl font-bold text-purple-700 mb-6">
-                ₹{pkg.monthlyPrice}
+                ₹{pkg.monthlyPrice} {/* Assuming monthlyPrice is the one-time price */}
               </div>
 
               <button
@@ -272,10 +393,10 @@ const PricingLandingPage = () => {
       {/* Call to Action / Footer Section */}
       <div className="text-center py-16 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 max-w-4xl mx-auto mt-16">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">
-          Ready to Grow Your Business?
+          Ready to Grow Your Photography Business?
         </h2>
         <p className="text-lg text-gray-600 mb-8">
-          Join thousands of businesses streamlining their estimates with QuoteKaro.
+          Join thousands of photographers and studios streamlining their estimates with QuoteKaro.
         </p>
         <button
           onClick={()=>navigate("/register")}

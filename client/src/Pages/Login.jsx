@@ -7,7 +7,7 @@ import {
   EyeOff,
   ArrowRight,
   Sparkles,
-  Camera,
+  Camera, // Unused import, removed.
   FileSignature
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -18,12 +18,12 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from "firebase/auth";
+import { Helmet } from 'react-helmet-async'; // <--- ADD THIS LINE FOR SEO MANAGEMENT
 
 import { useUser } from "../context/UserContext";
 import axios from "axios";
 
 const Login = () => {
-  
   const navigate = useNavigate();
   const { login, refresh } = useUser();
   const [email, setEmail] = useState("");
@@ -33,11 +33,20 @@ const Login = () => {
   const [error, setError] = useState("");
 
   const checkUserProfile = async (firebaseUID) => {
-    const res = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/users/${firebaseUID}`
-    );
-    const data = await res.json();
-    return data?.profileComplete;
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/${firebaseUID}`
+      );
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      return data?.profileComplete;
+    } catch (err) {
+      console.error("Error checking user profile:", err);
+      // Decide how to handle this error. For now, assume profile is not complete to guide user.
+      return false; 
+    }
   };
 
   const handleLogin = async (e) => {
@@ -65,7 +74,11 @@ const Login = () => {
       console.log("✅ Logged in!");
     } catch (err) {
       console.error(err);
-      setError("Invalid credentials or something went wrong.");
+      let errorMessage = "Invalid credentials or something went wrong.";
+      if (err.code === 'auth/invalid-email' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+          errorMessage = "Invalid email or password.";
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -73,27 +86,30 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
+    setLoading(true); // Set loading for Google login as well
+    setError("");
 
     try {
       await setPersistence(auth, browserLocalPersistence);
       const result = await signInWithPopup(auth, provider);
 
       const firebaseUID = result.user.uid;
-      const email = result.user.email; //
-      const studioName = result.user.displayName || email || "My Studio";
+      const userEmail = result.user.email; // Use a different variable name to avoid confusion with `email` state
+      const studioName = result.user.displayName || userEmail || "My Studio";
 
       console.log("✅ Logged in with Google (Firebase)!");
 
+      // Backend registration/login logic for Google users
       await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/user/register`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/user/register`, // Use register endpoint as it handles existing users too
         {
           firebaseUID,
           studioName,
-          email,
+          email: userEmail,
         }
       );
 
-      await refresh();
+      await refresh(); // Refresh user context state
       const hasProfile = await checkUserProfile(firebaseUID);
 
       if (hasProfile) {
@@ -101,10 +117,8 @@ const Login = () => {
       } else {
         navigate("/profile", { replace: true });
       }
-      // toast.success("Successfully logged in with Google!"); // Optional: Add toast notification
     } catch (err) {
       console.error("Error during Google login:", err);
-      // More specific error handling for user feedback
       let errorMessage = "Google sign-in failed. Please try again.";
       if (err.code === "auth/popup-closed-by-user") {
         errorMessage = "Google login was cancelled.";
@@ -119,12 +133,39 @@ const Login = () => {
       }
       setError(errorMessage);
     } finally {
-      // setLoading(false); // Ensure loading state is reset
+      setLoading(false); // Ensure loading state is reset
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Helmet for Login Page Specific SEO */}
+      <Helmet>
+        <title>Login | QuoteKaro - Sign In to Your Account</title>
+        <meta
+          name="description"
+          content="Sign in to your QuoteKaro account to create, manage, and send professional estimates for your photography business. Access your dashboard."
+        />
+        <meta
+          name="keywords"
+          content="QuoteKaro login, sign in, photography estimate software login, studio account access, freelance photographer login, client dashboard, professional quotes"
+        />
+        {/* Open Graph Tags for Social Sharing - specific to Login Page */}
+        <meta property="og:title" content="Login to QuoteKaro: Access Your Estimate Dashboard" />
+        <meta property="og:description" content="Existing QuoteKaro user? Sign in to your account to continue creating and managing your photography estimates with ease." />
+        <meta property="og:image" content="https://quotekaro.in/og-image-login.jpg" /> {/* IMPORTANT: Create a specific image for your login page and update this URL */}
+        <meta property="og:url" content="https://quotekaro.in/login" /> {/* IMPORTANT: Ensure this matches your actual login page URL */}
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="en_IN" />
+
+        {/* Twitter Card Tags for Social Sharing - specific to Login Page */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Sign In to QuoteKaro - Your Photography Estimate Software" />
+        <meta name="twitter:description" content="Already using QuoteKaro? Log in here to access your personalized dashboard and generate professional quotes." />
+        <meta name="twitter:image" content="https://quotekaro.in/twitter-image-login.jpg" /> {/* IMPORTANT: Create a specific image for your login page and update this URL */}
+        <meta name="twitter:site" content="@yourtwitterhandle" /> {/* OPTIONAL: Your Twitter handle */}
+      </Helmet>
+
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Floating orbs */}

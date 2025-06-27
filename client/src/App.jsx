@@ -4,7 +4,7 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import { saveUIDToLocalStorage } from "./auth";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-// import ProfilePage from "./Pages/Profile";
+
 import Dashboard from "./Pages/Dashboard";
 import MyEstimates from "./Pages/MyEstimates";
 import NewEstimate from "./Pages/NewEstimate";
@@ -22,9 +22,8 @@ import PricingLandingPage from "./Pages/PricingLandingPage";
 import ForgotPassword from "./Components/ForgotPassword";
 import ResetPassword from "./Components/ResetPassword";
 import ProfilePage from "./Pages/ProfilePage";
-import PreferencePage from "./Pages/PreferencePage";
 import Preference from "./Pages/Preference";
-
+import { Helmet } from 'react-helmet-async';
 function App() {
   useEffect(() => {
     saveUIDToLocalStorage();
@@ -33,6 +32,18 @@ function App() {
   return (
     <>
       <Toaster position="top-center" />
+      {/* Content */}
+      <Helmet>
+        <title>QuoteKaro | Instant Estimates for Photographers & Studios</title>
+        <meta
+          name="description"
+          content="Create instant, professional estimates for any photography shoot. Save time, impress clients, and grow your studio with QuoteKaro – India’s smart estimate maker for all photographers."
+        />
+        <meta name="keywords" content="photography estimate software, photography quote generator, SaaS for photographers, estimate tool for studios, studio estimate generator, freelance photographer estimate, photo studio quotation app, instant photography estimates, custom photography quotes, send photography proposal, India photography software" />
+        {/* You can also add default Open Graph/Twitter tags here if you want them to apply to every page,
+            but typically page-specific OG/Twitter tags are more effective. The ones in index.html act as ultimate fallbacks. */}
+      </Helmet>
+
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />}></Route>

@@ -93,11 +93,14 @@ const UserManagement = () => {
   };
 
   const handleAddCredits = async (userId) => {
-    const amount = parseInt(prompt("Enter amount of credits to add:"), 10);
-    if (!isNaN(amount) && amount > 0) {
+    const addcredit = parseInt(prompt("Enter amount of credits to add:"), 10);
+    if (!isNaN(addcredit) && addcredit > 0) {
+      console.log(addcredit);
       try {
-        await axios.patch(`${API_BASE_URL}/api/users/${userId}/credits`, { amount });
-        fetchUsers(); // Re-fetch to update UI
+        await axios.patch(`${API_BASE_URL}/api/users/${userId}/credits`, { addcredit });
+        fetchUsers();
+        
+         // Re-fetch to update UI
       } catch (err) {
         console.error("Error adding credits:", err);
         setError("Failed to add credits.");

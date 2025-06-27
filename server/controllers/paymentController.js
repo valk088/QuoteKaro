@@ -86,7 +86,10 @@ exports.verifyPayment = async (req, res) => {
       user.planExpiresAt = expiry;
 
       user.total_credits = credits;
-      user.left_credits = credits;
+      user.left_credits =  credits || 0 ; 
+      user.left_credits =  credits || 0 ; 
+      user.used_credits = 0 ;
+
     } else {
       user.left_credits += credits;
       user.total_credits += credits;

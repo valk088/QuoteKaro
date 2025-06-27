@@ -64,13 +64,13 @@ const NewEstimateMainn = () => {
   }, [userData]);
 
   const calculateTotals = () => {
-    const subtotal = services.reduce((sum, service) => sum + service.total, 0);
+    const subtotal = services.reduce((sum, service) => sum + (Number(service.total) || 0), 0);
     let discountAmount = 0;
 
     if (totals.discountType === "percentage") {
-      discountAmount = (subtotal * totals.discount) / 100;
+      discountAmount = (subtotal * Number(totals.discount)) / 100;
     } else {
-      discountAmount = totals.discount;
+      discountAmount = Number(totals.discount) || 0;
     }
 
     const netTotal = Math.max(0, subtotal - discountAmount);
@@ -88,7 +88,8 @@ const NewEstimateMainn = () => {
   }, [services, totals.discount, totals.discountType]);
 
   // Render null or loading indicator while user data is not available
-  if (loading || !userData) return null;
+  if (loading || !userData) return <div className="flex justify-center items-center h-screen text-gray-700">Loading user data...</div>;
+
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -105,26 +106,33 @@ const NewEstimateMainn = () => {
 
           if (field === "serviceName") {
             if (value === "custom_input") {
-              // User selected 'Write new service'
-              updated.serviceName = ""; // Clear current name
-              updated.isCustomInput = true;
-              updated.pricePerUnit = 0; // Reset price for new custom service
+              // User explicitly selected 'Write new service' from the dropdown
+              updated.serviceName = ""; // Clear current name for new input
+              updated.isCustomInput = true; // Activate custom input mode
+              updated.pricePerUnit = 0; // Reset price for the new custom service
             } else {
-              // User selected a predefined service or typed in a custom name
+              // User either selected a predefined service OR typed into a custom input field.
               const selectedOption = userServicesOptions.find(
                 (option) => option.name === value
               );
 
-              updated.serviceName = value; // Set the service name to the selected/typed value
-              updated.isCustomInput = false; // It's no longer a 'custom_input' state
+              updated.serviceName = value; // Update the service name (either selected or typed)
 
               if (selectedOption) {
+                // User selected a predefined option, so it's no longer custom input mode
                 updated.pricePerUnit = selectedOption.price;
-              } else if (value === "") {
-                // If user selected empty option
-                updated.pricePerUnit = 0;
+                updated.isCustomInput = false;
+              } else {
+                // If no predefined option was selected and it was already a custom input,
+                // means the user is typing. Keep isCustomInput true.
+                // If value is empty and it's not a custom input, reset price.
+                if (value === "" && !updated.isCustomInput) {
+                    updated.pricePerUnit = 0; // Reset price if select is cleared
+                }
+                // If it's a custom input (`updated.isCustomInput` is already true here),
+                // we don't need to change `isCustomInput` or `pricePerUnit` unless explicitly clearing.
+                // This preserves the typing experience.
               }
-              // If value is a new custom name typed directly into the input, pricePerUnit remains as is or 0
             }
           } else {
             // For quantity or pricePerUnit changes
@@ -170,24 +178,39 @@ const NewEstimateMainn = () => {
 
   const handleSubmit = async () => {
     try {
-      const isExpired = new Date(userData.planExpiresAt) < new Date();
+      const isExpired = userData && userData.planExpiresAt && new Date(userData.planExpiresAt) < new Date();
       if (isExpired) {
         toast.error("🚫 Your plan has expired. Please upgrade to continue.");
         setTimeout(() => {
-          navigate("/plan-credits");
+          navigate("/plancreditmanagement"); // Corrected route
         }, 2000);
         return;
       }
 
-      const firebaseUID = localStorage.getItem("firebaseUID");
+      // Using userData.firebaseUID directly from context
+      const firebaseUID = userData?.firebaseUID || localStorage.getItem("firebaseUID");
+      if (!firebaseUID) {
+        toast.error("Authentication error. Please log in again.");
+        return;
+      }
 
-      if (userData.left_credits <= 2) {
-        toast.error("You're out of credits. Please upgrade to continue.");
+      // Check for left_credits (assuming 2 credits for new estimate creation)
+      if (userData && userData.left_credits < 2) {
+        toast.error("You're out of credits. Please upgrade your plan to create new estimates.");
         setTimeout(() => {
-          navigate("/plan-credits");
+          navigate("/plancreditmanagement"); // Corrected route
         }, 2000);
         return;
       }
+      
+      if (userData && userData.isSuspended) {
+        toast.error("Your account is suspended. Please contact support.");
+        setTimeout(() => {
+          navigate("/plancreditmanagement"); // Corrected route
+        }, 2000);
+        return;
+      }
+
 
       const requiredFields = [
         formData.clientName,
@@ -201,21 +224,19 @@ const NewEstimateMainn = () => {
         return;
       }
 
-      const isValidServices = services.every(s =>
-        s.serviceName.trim() !== "" &&
-        s.quantity > 0 &&
-        s.pricePerUnit >= 0
+      const validServices = services.filter(s =>
+        s.serviceName.trim() !== "" && s.quantity > 0 && s.pricePerUnit >= 0
       );
 
-      if (!isValidServices) {
-        toast.error("Please ensure all services have a name, quantity (min 1), and valid price (min ₹0).");
+      if (validServices.length === 0) {
+        toast.error("Please add at least one valid service with a name, quantity (min 1), and valid price (min ₹0).");
         return;
       }
 
       const payload = {
         firebaseUID,
         ...formData,
-        services: services.map(s => ({
+        services: validServices.map(s => ({ // Ensure no `id` or `isCustomInput` is sent to backend
           serviceName: s.serviceName,
           quantity: s.quantity,
           pricePerUnit: s.pricePerUnit,
@@ -225,7 +246,7 @@ const NewEstimateMainn = () => {
         discount: totals.discount,
         discountType: totals.discountType,
         netTotal: totals.netTotal,
-        status: "draft",
+        status: "draft", // New estimates start as draft
         date: new Date().toISOString(),
       };
 
@@ -236,15 +257,16 @@ const NewEstimateMainn = () => {
 
       if (res.data.success) {
         toast.success("Draft Saved ✅ ");
-        console.log("✅ Estimate created successfully");
-        await refresh();
-        await refreshEstimates();
+        console.log("✅ Estimate created successfully", res.data);
+        await refresh(); // Refresh user data after credit deduction
+        await refreshEstimates(); // Refresh estimates list
+
         setTimeout(() => {
           navigate("/dashboard");
         }, 1500);
       }
     } catch (err) {
-      console.error("❌ Failed to create estimate", err);
+      console.error("❌ Failed to create estimate", err.response?.data || err.message);
       toast.error(err.response?.data?.message || "Failed to save estimate. Please try again.");
     }
   };
@@ -407,7 +429,7 @@ const NewEstimateMainn = () => {
                   Define your services and their default prices, or write a new one directly below.
                 </p>
                 <button
-                  onClick={() => navigate("/settings/preferences")}
+                  onClick={() => navigate("/settings/preferences")} // Assuming this is the correct route
                   className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors shadow-md"
                 >
                   Go to Preferences to Create Services
@@ -437,7 +459,7 @@ const NewEstimateMainn = () => {
                           }
                           placeholder="Enter new service name"
                           className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                          autoFocus // Automatically focus when it appears
+                          autoFocus
                         />
                       ) : (
                         <select

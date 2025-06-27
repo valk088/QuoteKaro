@@ -13,7 +13,7 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
-import { useEffect, useState, React, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 
 import WelcomeSection from "./WelcomeSection";
@@ -30,7 +30,7 @@ const EditEstimateMainn = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    status:"",
+    status: "",
     clientName: "",
     functionName: "",
     phoneNumber: "",
@@ -41,8 +41,9 @@ const EditEstimateMainn = () => {
     notes: "",
   });
 
+  // Added isCustomInput to service state for conditional rendering
   const [services, setServices] = useState([
-    { id: 1, serviceName: "", quantity: 1, pricePerUnit: 0, total: 0 },
+    { id: 1, serviceName: "", quantity: 1, pricePerUnit: 0, total: 0, isCustomInput: false },
   ]);
 
   const [totals, setTotals] = useState({
@@ -53,14 +54,14 @@ const EditEstimateMainn = () => {
   });
 
   // Use user's custom services for options
-    const userServicesOptions = useMemo(() => {
-      const services = userData?.services?.map((s) => ({
-        name: s.name,
-        price: s.price,
-      })) || [];
-      return services.sort((a, b) => a.name.localeCompare(b.name));
-    }, [userData]);
-  
+  const userServicesOptions = useMemo(() => {
+    const services = userData?.services?.map((s) => ({
+      name: s.name,
+      price: s.price,
+    })) || [];
+    return services.sort((a, b) => a.name.localeCompare(b.name));
+  }, [userData]);
+
 
   const statusOptions = [
     { value: "draft", label: "Draft", icon: AlertCircle, color: "text-gray-600" },
@@ -82,8 +83,8 @@ const EditEstimateMainn = () => {
         phoneNumber: estimateToEdit.phoneNumber || "",
         location: estimateToEdit.location || "",
         description: estimateToEdit.description || "",
-        startDate: estimateToEdit.startDate || "",
-        endDate: estimateToEdit.endDate || "",
+        startDate: estimateToEdit.startDate ? new Date(estimateToEdit.startDate).toISOString().slice(0, 10) : "",
+        endDate: estimateToEdit.endDate ? new Date(estimateToEdit.endDate).toISOString().slice(0, 10) : "",
         notes: estimateToEdit.notes || userData.notes || "",
       });
 
@@ -93,11 +94,13 @@ const EditEstimateMainn = () => {
           estimateServices.map((service, index) => ({
             ...service,
             id: service.id || index + 1, // Ensure each service has an ID
+            // Determine if it was a custom input if its name isn't in predefined options
+            isCustomInput: !userServicesOptions.some(opt => opt.name === service.serviceName),
           }))
         );
       } else {
         setServices([
-          { id: 1, serviceName: "", quantity: 1, pricePerUnit: 0, total: 0 },
+          { id: 1, serviceName: "", quantity: 1, pricePerUnit: 0, total: 0, isCustomInput: false },
         ]);
       }
 
@@ -108,7 +111,7 @@ const EditEstimateMainn = () => {
         netTotal: estimateToEdit.netTotal || 0,
       });
     }
-  }, [estimateToEdit, userData]);
+  }, [estimateToEdit, userData, userServicesOptions]); // Added userServicesOptions to dependency array
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -125,26 +128,37 @@ const EditEstimateMainn = () => {
 
           if (field === "serviceName") {
             if (value === "custom_input") {
-              // User selected 'Write new service'
-              updated.serviceName = ""; // Clear current name
-              updated.isCustomInput = true;
-              updated.pricePerUnit = 0; // Reset price for new custom service
+              // User explicitly selected 'Write new service' from the dropdown
+              updated.serviceName = ""; // Clear current name for new input
+              updated.isCustomInput = true; // Activate custom input mode
+              updated.pricePerUnit = 0; // Reset price for the new custom service
             } else {
-              // User selected a predefined service or typed in a custom name
+              // User either selected a predefined service OR typed into a custom input field.
               const selectedOption = userServicesOptions.find(
                 (option) => option.name === value
               );
 
-              updated.serviceName = value; // Set the service name to the selected/typed value
-              updated.isCustomInput = false; // It's no longer a 'custom_input' state
+              updated.serviceName = value; // Update the service name (either selected or typed)
 
               if (selectedOption) {
+                // User selected a predefined option, so it's no longer custom input mode
                 updated.pricePerUnit = selectedOption.price;
-              } else if (value === "") {
-                // If user selected empty option
-                updated.pricePerUnit = 0;
+                updated.isCustomInput = false;
+              } else {
+                // If no predefined option was selected:
+                // If it's currently a custom input (isCustomInput is true), it means the user is typing.
+                // If it's not a custom input and the value is empty, it means they cleared the select.
+                // We don't change `isCustomInput` if they are actively typing into a custom input field.
+                // If they clear the text input, `isCustomInput` should remain true to allow re-typing.
+                // The `isCustomInput` should only be set to `false` when a *predefined* option is selected.
+                if (value === "" && !updated.isCustomInput) {
+                    updated.pricePerUnit = 0; // Reset price if select is cleared
+                } else if (updated.isCustomInput) {
+                    // If it's a custom input and value is being typed, keep price as is, or reset if cleared.
+                    // This case handles continuous typing in the custom input box.
+                    updated.pricePerUnit = updated.pricePerUnit; // Keep existing custom price
+                }
               }
-              // If value is a new custom name typed directly into the input, pricePerUnit remains as is or 0
             }
           } else {
             // For quantity or pricePerUnit changes
@@ -181,7 +195,6 @@ const EditEstimateMainn = () => {
     }
   };
 
-  // Fix calculateTotals function - remove the separate call, let useEffect handle it
   const calculateTotals = () => {
     const subtotal = services.reduce(
       (sum, service) => sum + (Number(service.total) || 0),
@@ -211,7 +224,6 @@ const EditEstimateMainn = () => {
     }));
   };
 
-  // Fix useEffect dependency array
   useEffect(() => {
     calculateTotals();
   }, [services, totals.discount, totals.discountType]);
@@ -235,32 +247,35 @@ const EditEstimateMainn = () => {
     setIsLoading(true);
 
     try {
-      const isExpired = new Date(userData.planExpiresAt) < new Date();
+      const isExpired = userData && userData.planExpiresAt && new Date(userData.planExpiresAt) < new Date();
       if (isExpired) {
         toast.error("🚫 Your plan has expired. Please upgrade to continue.");
+        setTimeout(() => {
+          navigate("/plancreditmanagement"); // Corrected route
+        }, 2000);
+        setIsLoading(false); // Stop loading on error
+        return;
+      }
 
+      if (userData && userData.left_credits < 0.5) {
+        toast.error("You're out of credits. Please upgrade to continue.");
         setTimeout(() => {
-          navigate("/plan-credits");
+          navigate("/plancreditmanagement"); // Corrected route
         }, 2000);
+        setIsLoading(false); // Stop loading on error
         return;
       }
-      const firebaseUID = localStorage.getItem("firebaseUID");
 
-      // check required credits at least 0.5
-      if (userData.left_credits <= 0  ) {
-        toast.error(" You're out of credits. Please upgrade to continue.");
+      if (userData && userData.isSuspended) {
+        toast.error("Your account is suspended. Please contact support.");
         setTimeout(() => {
-          navigate("/plan-credits");
+          navigate("/plancreditmanagement"); // Corrected route
         }, 2000);
+        setIsLoading(false); // Stop loading on error
         return;
       }
-      if (userData.isSuspended ) {
-        toast.error(" You're account is Suspended");
-        setTimeout(() => {
-          navigate("/plan-credits");
-        }, 2000);
-        return;
-      }
+      
+      const firebaseUID = userData?.firebaseUID || localStorage.getItem("firebaseUID");
       if (!firebaseUID) {
         toast.error("Authentication error. Please log in again.");
         setIsLoading(false);
@@ -283,11 +298,11 @@ const EditEstimateMainn = () => {
 
       // Validate services
       const validServices = services.filter(
-        (service) => service.serviceName && service.serviceName.trim() !== ""
+        (service) => service.serviceName && service.serviceName.trim() !== "" && (service.quantity > 0 || service.pricePerUnit > 0)
       );
 
       if (validServices.length === 0) {
-        toast.error("Please add at least one service");
+        toast.error("Please add at least one valid service.");
         setIsLoading(false);
         return;
       }
@@ -295,12 +310,17 @@ const EditEstimateMainn = () => {
       const payload = {
         firebaseUID,
         ...formData,
-        services: validServices,
+        services: validServices.map(s => ({
+          serviceName: s.serviceName,
+          quantity: s.quantity,
+          pricePerUnit: s.pricePerUnit,
+          total: s.total,
+        })),
         subtotal: totals.subtotal,
         discount: totals.discount,
         discountType: totals.discountType,
         netTotal: totals.netTotal,
-        date: new Date().toISOString(),
+        date: new Date().toISOString(), // Use current date for update timestamp
       };
 
       const res = await axios.put(
@@ -310,10 +330,9 @@ const EditEstimateMainn = () => {
 
       if (res.data.success) {
         toast.success("Estimate updated successfully ✅");
-        console.log("✅ Estimate updated successfully");
-        await refresh();
+        console.log("✅ Estimate updated successfully", res.data);
+        await refresh(); // Refresh user data to get updated credits, etc.
 
-        // Refresh estimates if function is available
         if (refreshEstimates) {
           await refreshEstimates();
         }
@@ -322,26 +341,24 @@ const EditEstimateMainn = () => {
           navigate("/dashboard");
         }, 2000);
       } else {
-        toast.error("Failed to update estimate");
+        toast.error("Failed to update estimate: " + (res.data.message || "Unknown error"));
       }
     } catch (err) {
-      console.error("❌ Failed to update estimate", err);
-      toast.error(" Failed to update estimate");
+      console.error("❌ Failed to update estimate", err.response?.data || err.message);
+      toast.error("Failed to update estimate: " + (err.response?.data?.message || err.message));
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (loading || !estimates) return <div>Loading...</div>;
-  if (!estimateToEdit) return <div>Estimate not found</div>;
-  
+  if (loading || !estimates || !userData) return <div className="flex justify-center items-center h-screen text-gray-700">Loading...</div>;
+  if (!estimateToEdit) return <div className="flex justify-center items-center h-screen text-red-700">Estimate not found or unauthorized access.</div>;
+
   return (
     <div className="flex-1 p-0 m-0 md:p-8 overflow-y-auto">
       {/* Header with Status Dropdown */}
       <div className="flex-col justify-between items-center mb-6">
         <WelcomeSection name="Edit-Estimate" />
-        
-        
       </div>
 
       <div className="max-w-7xl mx-auto p-3 md:p-6 space-y-6">
@@ -422,7 +439,7 @@ const EditEstimateMainn = () => {
                 <input
                   type="date"
                   value={
-                    formData.startDate ? formData.startDate.slice(0, 10) : ""
+                    formData.startDate
                   }
                   onChange={(e) =>
                     handleInputChange("startDate", e.target.value)
@@ -444,7 +461,7 @@ const EditEstimateMainn = () => {
                 />
                 <input
                   type="date"
-                  value={formData.endDate ? formData.endDate.slice(0, 10) : ""}
+                  value={formData.endDate}
                   onChange={(e) => handleInputChange("endDate", e.target.value)}
                   className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
@@ -520,27 +537,43 @@ const EditEstimateMainn = () => {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Service Name
                     </label>
-                    <select
-                      value={service.serviceName}
-                      onChange={(e) =>
-                        handleServiceChange(
-                          service.id,
-                          "serviceName",
-                          e.target.value
-                        )
-                      }
-                      className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    >
-                      <option value="">Select a service</option>
-                          <option value="custom_input" className="font-bold text-purple-700 bg-purple-50">
-                            --- Write new service ---
+                    {service.isCustomInput ? (
+                      <input
+                        type="text"
+                        value={service.serviceName}
+                        onChange={(e) =>
+                          handleServiceChange(
+                            service.id,
+                            "serviceName",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Type custom service name"
+                        className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      />
+                    ) : (
+                      <select
+                        value={service.serviceName}
+                        onChange={(e) =>
+                          handleServiceChange(
+                            service.id,
+                            "serviceName",
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      >
+                        <option value="">Select a service</option>
+                        <option value="custom_input" className="font-bold text-purple-700 bg-purple-50">
+                          --- Write new service ---
+                        </option>
+                        {userServicesOptions.map((option) => (
+                          <option key={option.name} value={option.name}>
+                            {option.name} {option.price > 0 ? `(₹${option.price.toLocaleString()})` : ''}
                           </option>
-                          {userServicesOptions.map((option) => (
-                            <option key={option.name} value={option.name}>
-                              {option.name} {option.price > 0 ? `(₹${option.price.toLocaleString()})` : ''}
-                            </option>
-                          ))}
-                        </select>
+                        ))}
+                      </select>
+                    )}
                   </div>
 
                   <div>
@@ -681,7 +714,7 @@ const EditEstimateMainn = () => {
               <span className="text-xl font-bold text-purple-900">
                 Net Total
               </span>
-              <span className="text-2xl  bg-gradient-to-r font-bold from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-2xl  bg-gradient-to-r font-bold from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 ₹{totals.netTotal.toLocaleString()}
               </span>
             </div>
@@ -713,7 +746,7 @@ const EditEstimateMainn = () => {
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="flex-1 bg-gradient-to-r hover:from-pink-600 hover:to-purple-600 hover:scale-105  text-white py-4 px-6 rounded-2xl font-bold hover:bg-gradient-to-r from-purple-600  hover: from-pink-600 to-pink-600  transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-gradient-to-r hover:from-pink-600 hover:to-purple-600 hover:scale-105 text-white py-4 px-6 rounded-2xl font-bold hover:bg-gradient-to-r from-purple-600  hover: from-pink-600 to-pink-600  transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save size={20} />
             {isLoading ? "Updating..." : "Update Estimate"}

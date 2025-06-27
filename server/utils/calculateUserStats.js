@@ -1,7 +1,7 @@
-const Estimate = require('../models/estimates');
-const User = require('../models/user');
+const Estimate = require("../models/estimates");
+const User = require("../models/user");
 
-const updateUserStats = async (firebaseUID , action = "create") => {
+const updateUserStats = async (firebaseUID, action = "create") => {
   try {
     const user = await User.findOne({ firebaseUID });
     if (!user) {
@@ -11,20 +11,24 @@ const updateUserStats = async (firebaseUID , action = "create") => {
 
     const userId = user._id;
 
-    
     const confirmedEstimates = await Estimate.find({
       userId,
-      status: 'draft',
+      status: { $in: ['Approved', 'approved'] }
     });
 
     // Total Turnover
-    const totalTurnover = confirmedEstimates.reduce((sum, estimate) => sum + (estimate.netTotal || 0), 0);
+    const totalTurnover = confirmedEstimates.reduce(
+      (sum, estimate) => sum + (estimate.netTotal || 0),
+      0
+    );
 
     //  Total Estimates
     const totalEstimates = await Estimate.countDocuments({ userId });
 
     // 👤 Total Unique Clients
-    const allClientNames = await Estimate.find({ userId }).distinct("clientName");
+    const allClientNames = await Estimate.find({ userId }).distinct(
+      "clientName"
+    );
     const totalClients = allClientNames.length;
 
     //  Credit logic
@@ -33,26 +37,23 @@ const updateUserStats = async (firebaseUID , action = "create") => {
     else if (action === "update") usedDelta = 0.5;
 
     const CreditUsed = (user.used_credits || 0) + usedDelta;
-    const CreditLeft = user.total_credits  - CreditUsed ;
-
-
+    const CreditLeft = user.total_credits - CreditUsed;
 
     // ✅ Update User document
     user.totalturnover = totalTurnover;
     user.total_estimates = totalEstimates;
     user.total_clients = totalClients;
-    user.used_credits = CreditUsed,
-    user.left_credits  = CreditLeft,
-    await user.save();
+    (user.used_credits = CreditUsed),
+      (user.left_credits = CreditLeft),
+      await user.save();
 
     console.log("✅ User stats updated: ", {
       totalTurnover,
       totalEstimates,
       totalClients,
       CreditUsed,
-      CreditLeft
+      CreditLeft,
     });
-
   } catch (error) {
     console.error("Error updating user stats:", error);
   }

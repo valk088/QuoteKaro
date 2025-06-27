@@ -99,9 +99,9 @@ router.patch('/:id/status', async (req, res) => {
 router.patch('/:id/credits', async (req, res) => {
   try {
     const { id } = req.params;
-    const { amount } = req.body; // Expecting { amount: number }
+    const { addcredit } = req.body;
 
-    if (amount === undefined || typeof amount !== 'number') {
+    if (addcredit === undefined || typeof addcredit !== 'number') {
       return res.status(400).json({ message: 'Invalid amount provided. Must be a number.' });
     }
 
@@ -111,8 +111,9 @@ router.patch('/:id/credits', async (req, res) => {
     }
 
     // Update left_credits and used_credits based on the amount
-    user.left_credits = (user.left_credits || 0) + amount;
-    user.used_credits = (user.used_credits || 0) - amount; // Assuming adding credits decreases used, and vice versa if amount is negative
+    user.total_credits = (user.total_credits || 0) + addcredit;
+    user.left_credits = user.total_credits - (user.used_credits || 0);
+
 
     // Ensure credits don't go below zero if you have such a rule
     if (user.left_credits < 0) user.left_credits = 0;

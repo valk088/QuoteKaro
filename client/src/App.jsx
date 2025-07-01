@@ -12,7 +12,7 @@ import EditEstimate from "./Pages/EditEstimate";
 import { Toaster } from "react-hot-toast";
 import PlansCredits from "./Pages/PlansCredits";
 import Notifications from "./Components/NotificationMainn";
-import PreviewPage from "./Pages/PreviewPage";
+// import PreviewPage from "./Pages/PreviewPage";
 import PrivacyPolicyPage from "./Pages/PrivacyPolicyPage";
 import TermsConditionsPage from "./Pages/TermsConditionsPage";
 import RefundPolicyPage from "./Pages/RefundPolicyPage";
@@ -24,6 +24,8 @@ import ResetPassword from "./Components/ResetPassword";
 import ProfilePage from "./Pages/ProfilePage";
 import Preference from "./Pages/Preference";
 import { Helmet } from "react-helmet-async";
+import Blogs from "./Pages/Blogs";
+import FeaturesPage from "./Pages/FeaturesPage";
 function App() {
   useEffect(() => {
     saveUIDToLocalStorage();
@@ -73,7 +75,7 @@ function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/settings/profile" element={<ProfilePage />} />
           <Route path="/settings/preferences" element={<Preference />} />
-          <Route path="/preview/:id" element={<PreviewPage />} />
+          {/* <Route path="/preview/:id" element={<PreviewPage />} /> */}
 
           {/* Add routes for your policy pages if they are separate components */}
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
@@ -81,6 +83,8 @@ function App() {
           <Route path="/return-refund-policy" element={<RefundPolicyPage />} />
           <Route path="/about-us" element={<AboutUsPage />} />
           <Route path="/pricing" element={<PricingLandingPage />} />
+          <Route path="/blog" element={<Blogs />} />
+          <Route path="/features" element={<FeaturesPage />} />
 
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />

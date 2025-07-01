@@ -30,7 +30,7 @@ const AboutUsPage = () => {
         {/* Open Graph Tags for Social Sharing - specific to About Us Page */}
         <meta property="og:title" content="About QuoteKaro: Simplifying Estimates for Creatives" />
         <meta property="og:description" content="Discover QuoteKaro's journey to build the easiest and most powerful estimate generation platform for photographers and studios worldwide. Meet our team." />
-        <meta property="og:image" content="https://quotekaro.in/og-image-about.jpg" /> {/* IMPORTANT: Create a specific image for your About Us page and update this URL */}
+        <meta property="og:image" content="/logo.png" /> {/* IMPORTANT: Create a specific image for your About Us page and update this URL */}
         <meta property="og:url" content="https://quotekaro.in/about-us" /> {/* IMPORTANT: Ensure this matches your actual About Us page URL */}
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="en_IN" />
@@ -39,8 +39,8 @@ const AboutUsPage = () => {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Our Story: About QuoteKaro" />
         <meta name="twitter:description" content="Learn about QuoteKaro's mission to empower photographers and studios with intuitive, professional estimate tools. Based in India, serving globally." />
-        <meta name="twitter:image" content="https://quotekaro.in/twitter-image-about.jpg" /> {/* IMPORTANT: Create a specific image for your About Us page and update this URL */}
-        <meta name="twitter:site" content="@yourtwitterhandle" /> {/* OPTIONAL: Your Twitter handle */}
+        <meta name="twitter:image" content="/logo.png" /> {/* IMPORTANT: Create a specific image for your About Us page and update this URL */}
+        <meta name="twitter:site" content="https://x.com/QuoteKaro" /> {/* OPTIONAL: Your Twitter handle */}
 
         {/* Schema Markup for Organization and AboutPage (JSON-LD) */}
         <script type="application/ld+json">
@@ -52,7 +52,7 @@ const AboutUsPage = () => {
                   "@type": "Organization",
                   "name": "QuoteKaro",
                   "url": "https://quotekaro.in",
-                  "logo": "https://quotekaro.in/logo.png", // IMPORTANT: Update with your actual logo URL
+                  "logo": "https://res.cloudinary.com/dait6mgmz/image/upload/v1751371958/logo_vyiby6.png", // IMPORTANT: Update with your actual logo URL
                   "contactPoint": {
                     "@type": "ContactPoint",
                     "telephone": "+91-7877571101",
@@ -69,9 +69,9 @@ const AboutUsPage = () => {
                   },
                   "sameAs": [
                     // Add your social media profiles here if available
-                    "https://www.facebook.com/yourquotekaropage",
-                    "https://twitter.com/yourtwitterhandle",
-                    "https://www.linkedin.com/company/yourquotekarocompany"
+                    "https://www.instagram.com/quotekaro.in/",
+                    "https://x.com/QuoteKaro",
+                    
                   ]
                 },
                 {

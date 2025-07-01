@@ -100,8 +100,9 @@ const Sidebar = () => {
       id: "security",
       icon: Shield,
       label: "Security",
-      path: "/settings/security",
+      path: "/forgot-password",
     },
+    
     
   ];
 
@@ -432,10 +433,12 @@ const Sidebar = () => {
                     }`}
                   >
                     <Settings size={16} />
-                    <span className="text-sm font-medium">All Settings</span>
+                    <span className="text-sm font-medium" >All Settings</span>
+                    
                   </a>
 
                   <div className="border-t border-gray-100 my-2"></div>
+                  
 
                   {settingsSubItems.map((subItem) => (
                     <a
@@ -457,8 +460,29 @@ const Sidebar = () => {
                       />
                       <span className="text-sm">{subItem.label}</span>
                     </a>
+                    
                   ))}
+                  <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed ${
+              !isOpen ? "justify-center" : ""
+            }`}
+            title={!isOpen ? "Logout" : ""}
+          >
+            {isLoggingOut ? (
+              <div className="w-5 h-5 border-2 border-red-300 border-t-red-600 rounded-full animate-spin flex-shrink-0" />
+            ) : (
+              <RiLogoutBoxLine size={20} className="flex-shrink-0" />
+            )}
+            {isOpen && (
+              <span className="font-medium text-sm whitespace-nowrap">
+                {isLoggingOut ? "Logging out..." : "Logout"}
+              </span>
+            )}
+          </button>
                 </div>
+                
               </div>
             )}
           </div>

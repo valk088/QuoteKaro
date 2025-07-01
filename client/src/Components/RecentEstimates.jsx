@@ -11,7 +11,7 @@ function RecentEstimates() {
   const recentEstimates = [...estimates]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 10);
-  console.log("Recent Estimates Statuses:", recentEstimates.map(e => e.status));
+  
 
   const getStatusColor = (status) => {
     switch (status) {

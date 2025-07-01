@@ -46,7 +46,7 @@ export const UserProvider = ({ children }) => {
       localStorage.removeItem("firebaseUID");
       setUserData(null);
       setIsAuthenticated(false);
-      toast.error("Failed to load user session. Please log in.");
+      // toast.error("Failed to load user session. Please log in.");
     } finally {
       setLoading(false);
     }

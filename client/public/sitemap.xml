@@ -1,59 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://quotekaro.in/</loc>
+    <loc>https://www.quotekaro.in/</loc>
     <lastmod>2025-07-01T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://quotekaro.in/pricing</loc>
+    <loc>https://www.quotekaro.in/pricing</loc>
     <lastmod>2025-07-01T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://quotekaro.in/about-us</loc>
+    <loc>https://www.quotekaro.in/about-us</loc>
     <lastmod>2025-07-01T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://quotekaro.in/register</loc>
+    <loc>https://www.quotekaro.in/register</loc>
     <lastmod>2025-07-01T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://quotekaro.in/login</loc>
+    <loc>https://www.quotekaro.in/login</loc>
     <lastmod>2025-07-01T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://quotekaro.in/privacy-policy</loc>
+    <loc>https://www.quotekaro.in/privacy-policy</loc>
     <lastmod>2025-07-01T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://quotekaro.in/terms-conditions</loc>
+    <loc>https://www.quotekaro.in/terms-conditions</loc>
     <lastmod>2025-07-01T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://quotekaro.in/blog</loc>
+    <loc>https://www.quotekaro.in/return-refund-policy</loc>
     <lastmod>2025-07-01T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://quotekaro.in/features</loc>
+    <loc>https://www.quotekaro.in/blog</loc>
     <lastmod>2025-07-01T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
-  <!-- Add other public pages like /blog, /features if they are distinct routes -->
+  <url>
+    <loc>https://www.quotekaro.in/features</loc>
+    <lastmod>2025-07-01T00:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>

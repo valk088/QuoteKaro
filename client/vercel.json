@@ -1,4 +1,18 @@
 {
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://www.quotekaro.in/$1",
+      "permanent": true,
+      "statusCode": 308,
+      "has": [
+        {
+          "type": "host",
+          "value": "quotekaro.in"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

@@ -12,7 +12,7 @@ import EditEstimate from "./Pages/EditEstimate";
 import { Toaster } from "react-hot-toast";
 import PlansCredits from "./Pages/PlansCredits";
 import Notifications from "./Components/NotificationMainn";
-// import PreviewPage from "./Pages/PreviewPage";
+import PreviewPage from "./Pages/PreviewPage";
 import PrivacyPolicyPage from "./Pages/PrivacyPolicyPage";
 import TermsConditionsPage from "./Pages/TermsConditionsPage";
 import RefundPolicyPage from "./Pages/RefundPolicyPage";
@@ -75,7 +75,7 @@ function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/settings/profile" element={<ProfilePage />} />
           <Route path="/settings/preferences" element={<Preference />} />
-          {/* <Route path="/preview/:id" element={<PreviewPage />} /> */}
+          <Route path="/preview/:id" element={<PreviewPage />} />
 
           {/* Add routes for your policy pages if they are separate components */}
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />

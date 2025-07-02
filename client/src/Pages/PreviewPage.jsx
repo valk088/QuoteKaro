@@ -50,7 +50,7 @@ const PreviewEstimate = () => {
     switch (selectedTheme) {
       // case "elegant": return <ThemeElegant estimate={estimate} studio={userData} />;
       // case "modern": return <ThemeModern estimate={estimate} studio={userData} />;
-      default: return <ThemeModern estimate={estimate} studio={userData} />;
+      default: return <ThemeVintage estimate={estimate} studio={userData} />;
     }
   };
 

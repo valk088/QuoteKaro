@@ -5,6 +5,10 @@ import { useEstimates } from "../context/EstimateContext"; // If you need all es
 import axios from "axios";
 
 import ThemeModern from "../components/EstimateThemes/ThemeModern";
+import ThemeElegant from "../components/EstimateThemes/ThemeElegant";
+import ThemeMinimal from "../components/EstimateThemes/ThemeMinimal";
+import ThemeSimple from "../components/EstimateThemes/ThemeSimple";
+import ThemeVintage from "../components/EstimateThemes/ThemeVintage";
 
 const PreviewEstimate = () => {
   const { id } = useParams();
@@ -47,7 +51,7 @@ const PreviewEstimate = () => {
     switch (selectedTheme) {
       // case "elegant": return <ThemeElegant estimate={estimate} studio={userData} />;
       // case "modern": return <ThemeModern estimate={estimate} studio={userData} />;
-      default: return <ThemeModern estimate={estimate} studio={userData} />;
+      default: return <ThemeVintage estimate={estimate} studio={userData} />;
     }
   };
 
